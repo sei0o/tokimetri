@@ -1,0 +1,47 @@
+
+<%# example of analyzed content: [["08:30", "09:10", "起床", "生活 "], ["09:10", "09:50", "朝食", "生活 "], ["09:50", "10:30", "絵を描く", "趣味 "], ["10:30", "10:50", "ぐずる", "だらだら "], ["10:50", "11:20", "行かないことにする", "だらだら "], ["11:20", "13:00", "日記アプリを作り始める", "研究 "], ["13:00", "13:20", "ぐずる", "だらだら "], ["13:20", "13:40", "昼飯買って食べる", "生活 "], ["13:40", "14:30", "ネットサーフィン", "だらだら "], ["14:30", "15:45", "航空券とかESTAとか申請する", "事務 "], ["15:45", "17:22", "PM6を動かそうとコードをいじる", "研究 "], ["17:22", "17:35", "散歩", "生活 "], ["17:35", "17:45", "帰宅してTier4かと思いきやサボる", "だらだら "], ["18:06", "20:10", "仕事", "仕事 "], ["20:10", "20:44", "NHKの更新したりネット観てだらだら", "だらだら "], ["20:44", "21:30", "風呂", "生活 "], ["21:30", "21:52", "ネットサーフィン", "だらだら "], ["21:52", "22:34", "夕食", "生活 "], ["22:34", "23:00", "moyaru書く", "趣味 "], ["23:00", "03:30", "プロミ観て描く", "娯楽 "], ["03:30", "04:00", "moyaruいじる", "趣味 "], ["04:00", "_", "寝る", "生活 "]] %>
+
+<% @pages.each do |pg| %>
+  <h2><%= pg.date %></h2>
+  <% CSV.parse(pg.analyzed_content).each do |l| %>
+    <p><%= l %></p>
+  <% end %>
+  <hr>
+<% end %>
+
+<div id="calendar" style="height: 600px;"></div>
+
+
+<link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
+<script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>
+
+
+<script>
+  const Calendar = tui.Calendar;
+  const container = document.getElementById('calendar');
+  const options = {
+    defaultView: 'week',
+    timezone: {
+      zones: [
+        {
+          timezoneName: 'Asia/Tokyo',
+          displayLabel: 'Tokyo',
+        },
+      ],
+    },
+    calendars: [
+      {
+        id: 'cal1',
+        name: 'Personal',
+        backgroundColor: '#03bd9e',
+      },
+      {
+        id: 'cal2',
+        name: 'Work',
+        backgroundColor: '#00a9ff',
+      },
+    ],
+  };
+
+  const calendar = new Calendar(container, options);
+</script>

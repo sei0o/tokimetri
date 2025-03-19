@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: white;
+}
+
+#container {
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  background-color: white;
+  height: 100vh;
+  padding: 1rem;
+}
+
+#pagenav {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: #333;
+}
+
+#pagenav ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+#pagenav li {
+  display: inline;
+  margin: 0 0.5rem;
+}
+
+#service {
+  font-weight: bold;
+}
+
+
+#pagenav a {
+  text-decoration: none;
+}
+
+#pagenav a:hover {
+  text-decoration: underline;
+}
