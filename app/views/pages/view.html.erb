@@ -1,47 +1,361 @@
-
-<%# example of analyzed content: [["08:30", "09:10", "起床", "生活 "], ["09:10", "09:50", "朝食", "生活 "], ["09:50", "10:30", "絵を描く", "趣味 "], ["10:30", "10:50", "ぐずる", "だらだら "], ["10:50", "11:20", "行かないことにする", "だらだら "], ["11:20", "13:00", "日記アプリを作り始める", "研究 "], ["13:00", "13:20", "ぐずる", "だらだら "], ["13:20", "13:40", "昼飯買って食べる", "生活 "], ["13:40", "14:30", "ネットサーフィン", "だらだら "], ["14:30", "15:45", "航空券とかESTAとか申請する", "事務 "], ["15:45", "17:22", "PM6を動かそうとコードをいじる", "研究 "], ["17:22", "17:35", "散歩", "生活 "], ["17:35", "17:45", "帰宅してTier4かと思いきやサボる", "だらだら "], ["18:06", "20:10", "仕事", "仕事 "], ["20:10", "20:44", "NHKの更新したりネット観てだらだら", "だらだら "], ["20:44", "21:30", "風呂", "生活 "], ["21:30", "21:52", "ネットサーフィン", "だらだら "], ["21:52", "22:34", "夕食", "生活 "], ["22:34", "23:00", "moyaru書く", "趣味 "], ["23:00", "03:30", "プロミ観て描く", "娯楽 "], ["03:30", "04:00", "moyaruいじる", "趣味 "], ["04:00", "_", "寝る", "生活 "]] %>
-
-<% @pages.each do |pg| %>
-  <h2><%= pg.date %></h2>
-  <% CSV.parse(pg.analyzed_content).each do |l| %>
-    <p><%= l %></p>
-  <% end %>
-  <hr>
+<% content_for :head do %>
+  <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
+  <script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>
+  <style>
+    .calendar-container {
+      margin-top: 30px;
+      margin-bottom: 50px;
+    }
+    
+    .calendar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+    }
+    
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+      border-radius: 3px;
+    }
+    
+    .calendar-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+    }
+    
+    .view-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .view-button {
+      padding: 5px 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .view-button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+    
+    .date-navigation {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .nav-button {
+      padding: 5px 10px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .current-date-range {
+      font-weight: bold;
+    }
+    
+    .raw-data-toggle {
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    
+    .raw-data {
+      display: none;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    
+    .raw-data.visible {
+      display: block;
+    }
+  </style>
 <% end %>
 
-<div id="calendar" style="height: 600px;"></div>
+<% content_for :title, "view" %>
 
-
-<link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
-<script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>
-
+<div class="calendar-container">
+  <div class="calendar-legend">
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #4285F4;"></div>
+      <span>事務</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #0F9D58;"></div>
+      <span>研究</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #9C27B0;"></div>
+      <span>趣味</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #9E9E9E;"></div>
+      <span>だらだら</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #FF9800;"></div>
+      <span>娯楽</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #009688;"></div>
+      <span>生活</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color" style="background-color: #DB4437;"></div>
+      <span>仕事</span>
+    </div>
+  </div>
+  
+  <div class="calendar-controls">
+    <div class="view-buttons">
+      <button class="view-button active" data-view="day">日</button>
+      <button class="view-button" data-view="week">週</button>
+    </div>
+    
+    <div class="date-navigation">
+      <button class="nav-button" id="prev-button">前へ</button>
+      <span class="current-date-range" id="current-date-range"></span>
+      <button class="nav-button" id="next-button">次へ</button>
+      <button class="nav-button" id="today-button">今日</button>
+    </div>
+  </div>
+  
+  <div id="calendar" style="height: 600px;"></div>
+  
+  <div class="raw-data-toggle">
+    <button id="toggle-raw-data">元データを表示/非表示</button>
+  </div>
+  
+  <div class="raw-data" id="raw-data">
+    <% @pages.each do |pg| %>
+      <h2><%= pg.date %></h2>
+      <% if pg.analyzed_content.present? %>
+        <% CSV.parse(pg.analyzed_content).each do |l| %>
+          <p><%= l.join(", ") %></p>
+        <% end %>
+      <% else %>
+        <p>分析データがありません</p>
+      <% end %>
+      <hr>
+    <% end %>
+  </div>
+</div>
 
 <script>
-  const Calendar = tui.Calendar;
-  const container = document.getElementById('calendar');
-  const options = {
-    defaultView: 'week',
-    timezone: {
-      zones: [
-        {
-          timezoneName: 'Asia/Tokyo',
-          displayLabel: 'Tokyo',
+  document.addEventListener('DOMContentLoaded', function() {
+    // Toggle raw data visibility
+    const toggleButton = document.getElementById('toggle-raw-data');
+    const rawData = document.getElementById('raw-data');
+    
+    toggleButton.addEventListener('click', function() {
+      rawData.classList.toggle('visible');
+    });
+    
+    // Initialize calendar
+    const Calendar = tui.Calendar;
+    const container = document.getElementById('calendar');
+    
+    // Category color mapping
+    const categoryColors = {
+      '事務': '#4285F4',  // Blue
+      '研究': '#0F9D58',  // Green
+      '趣味': '#9C27B0',  // Purple
+      'だらだら': '#9E9E9E',  // Gray
+      '娯楽': '#FF9800',  // Orange
+      '生活': '#009688',  // Teal
+      '仕事': '#DB4437'   // Red
+    };
+    
+    // Define calendar categories
+    const calendarCategories = Object.entries(categoryColors).map(([name, color]) => ({
+      id: name,
+      name: name,
+      backgroundColor: color,
+      borderColor: color,
+      dragBackgroundColor: color
+    }));
+    
+    // Calendar options
+    const options = {
+      defaultView: 'day',
+      useDetailPopup: true,
+      useFormPopup: false,
+      isReadOnly: true,
+      week: {
+        startDayOfWeek: 1,
+        dayNames: ['日', '月', '火', '水', '木', '金', '土'],
+        workweek: false,
+        hourStart: 0,
+        hourEnd: 24,
+        taskView: false,
+        eventView: ['time']
+      },
+      month: {
+        dayNames: ['日', '月', '火', '水', '木', '金', '土'],
+        startDayOfWeek: 1,
+      },
+      timezone: {
+        zones: [
+          {
+            timezoneName: 'Asia/Tokyo',
+            displayLabel: 'Tokyo',
+          },
+        ],
+      },
+      calendars: calendarCategories,
+      template: {
+        time: function(event) {
+          return `<span style="font-weight: bold;">${event.title}</span>`;
         },
-      ],
-    },
-    calendars: [
-      {
-        id: 'cal1',
-        name: 'Personal',
-        backgroundColor: '#03bd9e',
-      },
-      {
-        id: 'cal2',
-        name: 'Work',
-        backgroundColor: '#00a9ff',
-      },
-    ],
-  };
+        popupDetailDate: function(isAllday, start, end) {
+          const startDate = new Date(start);
+          const endDate = new Date(end);
+          const startHour = startDate.getHours().toString().padStart(2, '0');
+          const startMin = startDate.getMinutes().toString().padStart(2, '0');
+          const endHour = endDate.getHours().toString().padStart(2, '0');
+          const endMin = endDate.getMinutes().toString().padStart(2, '0');
+          
+          return `${startHour}:${startMin} - ${endHour}:${endMin}`;
+        }
+      }
+    };
+    
+    // Create calendar instance
+    const calendar = new Calendar(container, options);
+    
+    // Parse page data and add events to calendar
+    const events = [];
 
-  const calendar = new Calendar(container, options);
+    const data = <%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>;
+
+
+    console.log(data);
+
+    for (let page of data) {
+      console.log(page);
+      for (let line of page) {
+        const [startTime, endTime, activity, category] = line;
+        console.log(startTime, endTime, activity, category);
+      
+        // Skip entries with missing end time
+        if (endTime === "_") continue;
+        if (startTime === "_") continue;
+        if (startTime === 'start') continue;
+      
+        // Parse date and times for YYYY-MM-DD HH:MM format w/ regex
+        const st = startTime.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+        const [startYear, startMonth, startDay, startHour, startMinute] = st.slice(1).map(Number);
+
+        const et = endTime.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
+        const [endYear, endMonth, endDay, endHour, endMinute] = et.slice(1).map(Number);
+
+        const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute);
+        const endDate = new Date(endYear, endMonth - 1, endDay, endHour, endMinute);
+      
+        // Get color based on category
+        const categoryKey = category.trim();
+        const color = categoryColors[categoryKey] || '#808080';
+      
+        // Create event object
+        events.push({
+          id: `${startDate}-${endDate}`,
+          calendarId: categoryKey,
+          title: activity,
+          start: startDate,
+          end: endDate,
+          isAllday: false,
+          category: 'time',
+          backgroundColor: color,
+          borderColor: color
+        });
+      }
+    }
+
+
+    console.log(events);
+    calendar.createEvents(events);
+    
+    // Update date range display
+    function updateDateRangeText() {
+      const viewName = calendar.getViewName();
+      const viewDate = calendar.getDate();
+      const dateRangeElement = document.getElementById('current-date-range');
+      
+      const year = viewDate.getFullYear();
+      const month = (viewDate.getMonth() + 1).toString().padStart(2, '0');
+      const day = viewDate.getDate().toString().padStart(2, '0');
+      
+      if (viewName === 'day') {
+        dateRangeElement.textContent = `${year}年${month}月${day}日`;
+      } else if (viewName === 'week') {
+        const weekStart = new Date(viewDate);
+        const weekEnd = new Date(viewDate);
+        const dayOfWeek = viewDate.getDay();
+        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        
+        weekStart.setDate(viewDate.getDate() + mondayOffset);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        
+        const startMonth = (weekStart.getMonth() + 1).toString().padStart(2, '0');
+        const startDay = weekStart.getDate().toString().padStart(2, '0');
+        const endMonth = (weekEnd.getMonth() + 1).toString().padStart(2, '0');
+        const endDay = weekEnd.getDate().toString().padStart(2, '0');
+        
+        dateRangeElement.textContent = `${weekStart.getFullYear()}年${startMonth}月${startDay}日 - ${endMonth}月${endDay}日`;
+      }
+    }
+    
+    // Initialize date range text
+    updateDateRangeText();
+    
+    // View buttons
+    const viewButtons = document.querySelectorAll('.view-button');
+    viewButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const viewName = this.getAttribute('data-view');
+        
+        // Update active button
+        viewButtons.forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Change calendar view
+        calendar.changeView(viewName);
+        updateDateRangeText();
+      });
+    });
+    
+    // Navigation buttons
+    document.getElementById('prev-button').addEventListener('click', function() {
+      calendar.prev();
+      updateDateRangeText();
+    });
+    
+    document.getElementById('next-button').addEventListener('click', function() {
+      calendar.next();
+      updateDateRangeText();
+    });
+    
+    document.getElementById('today-button').addEventListener('click', function() {
+      calendar.today();
+      updateDateRangeText();
+    });
+  });
 </script>
