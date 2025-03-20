@@ -7,8 +7,20 @@ class PagesController < ApplicationController
     @page = Page.find_by(date: Date.today)
     if @page.nil?
       @page = Page.new(date: Date.today)
+      @yesterday = @page.date - 1.day
+      @yesterday_page = Page.find_by(date: @yesterday)
+
+      @tomorrow = @page.date + 1.day
+      @tomorrow_page = Page.find_by(date: @tomorrow)
+      
       render :new
     else
+      @yesterday = @page.date - 1.day
+      @yesterday_page = Page.find_by(date: @yesterday)
+
+      @tomorrow = @page.date + 1.day
+      @tomorrow_page = Page.find_by(date: @tomorrow)
+      
       render :show
     end
   end
@@ -26,10 +38,6 @@ class PagesController < ApplicationController
 
     @tomorrow = @page.date + 1.day
     @tomorrow_page = Page.find_by(date: @tomorrow)
-  end
-
-  def graph
-    @page = Page.find(params[:id])
   end
 
   def new
@@ -58,10 +66,20 @@ class PagesController < ApplicationController
   def update
     @page = Page.find(params[:id])
     if @page.update(page_params)
-      redirect_to @page
+      respond_to do |format|
+        format.html { redirect_to @page }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.update("editor-status", partial: "pages/save_status", locals: { status: "Saved" })
+        }
+      end
     else
       puts "fail"
-      render :edit, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { render :edit, status: :unprocessable_entity }
+        format.turbo_stream { 
+          render turbo_stream: turbo_stream.update("editor-status", partial: "pages/save_status", locals: { status: "Error saving" })
+        }
+      end
     end
   end
 

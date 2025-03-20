@@ -114,7 +114,7 @@
     position: relative;
   }
 
-  .hday-line {
+  .hday-slot {
     position: absolute;
     top: 0;
     width: 100%;
@@ -124,7 +124,7 @@
 </style>
 
 <div class="hday">
-  <div class="hday-line" style="left: calc(100% * 3.5/24); width: calc(100% * 0.5/24);" ></div>
+  <div class="hday-slot" style="left: calc(100% * 3.5/24); width: calc(100% * 0.5/24);" ></div> <!-- 30min from 3:30 -->
 </div>
 
 <div class="calendar-container" data-controller="calendar" data-calendar-pages-value='<%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>' style="height: 600px">

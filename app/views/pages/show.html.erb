@@ -18,6 +18,13 @@
     display: inline;
     margin: 0;
   }
+  
+  .save-status {
+    margin-left: 10px;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #666;
+  }
 </style>
 
 <nav id="dailynav">
@@ -37,19 +44,20 @@
 </nav>
 
 <div id="container">
-  <div id="editor">
-    <%= form_with model: @page do |form| %>
-      <nav>
-        <%= form.hidden_field :date, value: @page.date %>
-        <%= form.submit %>
-      </nav>
-      <div id="editor-text">
-        <%= form.rich_text_area :content, value: @page.content %>
-      </div>
+<div id="editor" data-controller="editor">
+  <%= form_with model: @page, data: { editor_target: "form", turbo_stream: true } do |form| %>
+    <nav>
+      <%= form.hidden_field :date, value: @page.date %>
+      <%= form.submit %>
+      <span id="editor-status" data-editor-target="status" class="save-status"></span>
+    </nav>
+    <div id="editor-text">
+      <%= form.rich_text_area :content, value: @page.content %>
+    </div>
 
-    <% end %>
+  <% end %>
 
-  </div>
+</div>
 
   <div id="analyzed">
     <h2>Analysis</h2>
