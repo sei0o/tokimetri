@@ -1,6 +1,6 @@
 <% content_for :head do %>
   <link rel="stylesheet" href="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.css" />
-  <script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script>
+  <%# <script src="https://uicdn.toast.com/calendar/latest/toastui-calendar.min.js"></script> %>
   <style>
     .calendar-container {
       margin-top: 30px;
@@ -92,7 +92,42 @@
 
 <% content_for :title, "view" %>
 
-<div class="calendar-container">
+
+
+<% @pages.each do |pg| %>
+  <h2><%= pg.date %></h2>
+  <% if pg.analyzed_content.present? %>
+    <% CSV.parse(pg.analyzed_content).each do |l| %>
+      <p><%= l.join(", ") %></p>
+    <% end %>
+  <% else %>
+    <p>分析データがありません</p>
+  <% end %>
+  <hr>
+<% end %>
+
+<style>
+  .hday {
+    width: 100%;
+    height: 1.5rem;
+    background-color: #f0f0f0;
+    position: relative;
+  }
+
+  .hday-line {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: red;
+  }
+</style>
+
+<div class="hday">
+  <div class="hday-line" style="left: calc(100% * 3.5/24); width: calc(100% * 0.5/24);" ></div>
+</div>
+
+<div class="calendar-container" data-controller="calendar" data-calendar-pages-value='<%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>' style="height: 600px">
   <div class="calendar-legend">
     <div class="legend-item">
       <div class="legend-color" style="background-color: #4285F4;"></div>
@@ -126,25 +161,26 @@
   
   <div class="calendar-controls">
     <div class="view-buttons">
-      <button class="view-button active" data-view="day">日</button>
-      <button class="view-button" data-view="week">週</button>
+      <button class="view-button" data-calendar-target="viewButton" data-view="day" data-action="click->calendar#changeView">日</button>
+      <button class="view-button" data-calendar-target="viewButton" data-view="week" data-action="click->calendar#changeView">週</button>
     </div>
     
     <div class="date-navigation">
-      <button class="nav-button" id="prev-button">前へ</button>
-      <span class="current-date-range" id="current-date-range"></span>
-      <button class="nav-button" id="next-button">次へ</button>
-      <button class="nav-button" id="today-button">今日</button>
+      <button class="nav-button" data-action="click->calendar#prev">前へ</button>
+      <span class="current-date-range" data-calendar-target="currentDateRange"></span>
+      <button class="nav-button" data-action="click->calendar#next">次へ</button>
+      <button class="nav-button" data-action="click->calendar#today">今日</button>
     </div>
   </div>
   
-  <div id="calendar" style="height: 600px;"></div>
-  
+  <div id="calendar" data-calendar-target="calendar" style="height: 80vh;">
+  </div>
+ 
   <div class="raw-data-toggle">
-    <button id="toggle-raw-data">元データを表示/非表示</button>
+    <button data-action="click->calendar#toggleRawData" data-calendar-target="toggleRawData">元データを表示/非表示</button>
   </div>
   
-  <div class="raw-data" id="raw-data">
+  <div class="raw-data" data-calendar-target="rawData">
     <% @pages.each do |pg| %>
       <h2><%= pg.date %></h2>
       <% if pg.analyzed_content.present? %>
@@ -157,205 +193,5 @@
       <hr>
     <% end %>
   </div>
+
 </div>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // Toggle raw data visibility
-    const toggleButton = document.getElementById('toggle-raw-data');
-    const rawData = document.getElementById('raw-data');
-    
-    toggleButton.addEventListener('click', function() {
-      rawData.classList.toggle('visible');
-    });
-    
-    // Initialize calendar
-    const Calendar = tui.Calendar;
-    const container = document.getElementById('calendar');
-    
-    // Category color mapping
-    const categoryColors = {
-      '事務': '#4285F4',  // Blue
-      '研究': '#0F9D58',  // Green
-      '趣味': '#9C27B0',  // Purple
-      'だらだら': '#9E9E9E',  // Gray
-      '娯楽': '#FF9800',  // Orange
-      '生活': '#009688',  // Teal
-      '仕事': '#DB4437'   // Red
-    };
-    
-    // Define calendar categories
-    const calendarCategories = Object.entries(categoryColors).map(([name, color]) => ({
-      id: name,
-      name: name,
-      backgroundColor: color,
-      borderColor: color,
-      dragBackgroundColor: color
-    }));
-    
-    // Calendar options
-    const options = {
-      defaultView: 'day',
-      useDetailPopup: true,
-      useFormPopup: false,
-      isReadOnly: true,
-      week: {
-        startDayOfWeek: 1,
-        dayNames: ['日', '月', '火', '水', '木', '金', '土'],
-        workweek: false,
-        hourStart: 0,
-        hourEnd: 24,
-        taskView: false,
-        eventView: ['time']
-      },
-      month: {
-        dayNames: ['日', '月', '火', '水', '木', '金', '土'],
-        startDayOfWeek: 1,
-      },
-      timezone: {
-        zones: [
-          {
-            timezoneName: 'Asia/Tokyo',
-            displayLabel: 'Tokyo',
-          },
-        ],
-      },
-      calendars: calendarCategories,
-      template: {
-        time: function(event) {
-          return `<span style="font-weight: bold;">${event.title}</span>`;
-        },
-        popupDetailDate: function(isAllday, start, end) {
-          const startDate = new Date(start);
-          const endDate = new Date(end);
-          const startHour = startDate.getHours().toString().padStart(2, '0');
-          const startMin = startDate.getMinutes().toString().padStart(2, '0');
-          const endHour = endDate.getHours().toString().padStart(2, '0');
-          const endMin = endDate.getMinutes().toString().padStart(2, '0');
-          
-          return `${startHour}:${startMin} - ${endHour}:${endMin}`;
-        }
-      }
-    };
-    
-    // Create calendar instance
-    const calendar = new Calendar(container, options);
-    
-    // Parse page data and add events to calendar
-    const events = [];
-
-    const data = <%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>;
-
-
-    console.log(data);
-
-    for (let page of data) {
-      console.log(page);
-      for (let line of page) {
-        const [startTime, endTime, activity, category] = line;
-        console.log(startTime, endTime, activity, category);
-      
-        // Skip entries with missing end time
-        if (endTime === "_") continue;
-        if (startTime === "_") continue;
-        if (startTime === 'start') continue;
-      
-        // Parse date and times for YYYY-MM-DD HH:MM format w/ regex
-        const st = startTime.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
-        const [startYear, startMonth, startDay, startHour, startMinute] = st.slice(1).map(Number);
-
-        const et = endTime.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/);
-        const [endYear, endMonth, endDay, endHour, endMinute] = et.slice(1).map(Number);
-
-        const startDate = new Date(startYear, startMonth - 1, startDay, startHour, startMinute);
-        const endDate = new Date(endYear, endMonth - 1, endDay, endHour, endMinute);
-      
-        // Get color based on category
-        const categoryKey = category.trim();
-        const color = categoryColors[categoryKey] || '#808080';
-      
-        // Create event object
-        events.push({
-          id: `${startDate}-${endDate}`,
-          calendarId: categoryKey,
-          title: activity,
-          start: startDate,
-          end: endDate,
-          isAllday: false,
-          category: 'time',
-          backgroundColor: color,
-          borderColor: color
-        });
-      }
-    }
-
-
-    console.log(events);
-    calendar.createEvents(events);
-    
-    // Update date range display
-    function updateDateRangeText() {
-      const viewName = calendar.getViewName();
-      const viewDate = calendar.getDate();
-      const dateRangeElement = document.getElementById('current-date-range');
-      
-      const year = viewDate.getFullYear();
-      const month = (viewDate.getMonth() + 1).toString().padStart(2, '0');
-      const day = viewDate.getDate().toString().padStart(2, '0');
-      
-      if (viewName === 'day') {
-        dateRangeElement.textContent = `${year}年${month}月${day}日`;
-      } else if (viewName === 'week') {
-        const weekStart = new Date(viewDate);
-        const weekEnd = new Date(viewDate);
-        const dayOfWeek = viewDate.getDay();
-        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-        
-        weekStart.setDate(viewDate.getDate() + mondayOffset);
-        weekEnd.setDate(weekStart.getDate() + 6);
-        
-        const startMonth = (weekStart.getMonth() + 1).toString().padStart(2, '0');
-        const startDay = weekStart.getDate().toString().padStart(2, '0');
-        const endMonth = (weekEnd.getMonth() + 1).toString().padStart(2, '0');
-        const endDay = weekEnd.getDate().toString().padStart(2, '0');
-        
-        dateRangeElement.textContent = `${weekStart.getFullYear()}年${startMonth}月${startDay}日 - ${endMonth}月${endDay}日`;
-      }
-    }
-    
-    // Initialize date range text
-    updateDateRangeText();
-    
-    // View buttons
-    const viewButtons = document.querySelectorAll('.view-button');
-    viewButtons.forEach(button => {
-      button.addEventListener('click', function() {
-        const viewName = this.getAttribute('data-view');
-        
-        // Update active button
-        viewButtons.forEach(btn => btn.classList.remove('active'));
-        this.classList.add('active');
-        
-        // Change calendar view
-        calendar.changeView(viewName);
-        updateDateRangeText();
-      });
-    });
-    
-    // Navigation buttons
-    document.getElementById('prev-button').addEventListener('click', function() {
-      calendar.prev();
-      updateDateRangeText();
-    });
-    
-    document.getElementById('next-button').addEventListener('click', function() {
-      calendar.next();
-      updateDateRangeText();
-    });
-    
-    document.getElementById('today-button').addEventListener('click', function() {
-      calendar.today();
-      updateDateRangeText();
-    });
-  });
-</script>

@@ -36,8 +36,14 @@ body {
 }
 
 
-#pagenav a {
+#pagenav a:link {
   text-decoration: none;
+  color: #333;
+}
+
+#pagenav a:visited {
+  text-decoration: none;
+  color: #333;
 }
 
 #pagenav a:hover {

@@ -2,6 +2,16 @@ class PagesController < ApplicationController
   def index
     @pages = Page.all
   end
+
+  def today
+    @page = Page.find_by(date: Date.today)
+    if @page.nil?
+      @page = Page.new(date: Date.today)
+      render :new
+    else
+      render :show
+    end
+  end
   
   def view
     require 'csv'

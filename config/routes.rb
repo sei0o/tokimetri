@@ -16,5 +16,7 @@ Rails.application.routes.draw do
 
   get "/about", to: "pages#about", as: :about
 
+  get "/today", to: "pages#today", as: :today
+
   root "pages#index"
 end
