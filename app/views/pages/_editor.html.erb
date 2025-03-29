@@ -71,9 +71,9 @@
 
   <div id="analyzed">
     <h2>Analysis</h2>
-    <form action="/pages/<%= page.id %>/analyze" method="post">
-      <input type='submit' value='analyze'>
-    </form>
+    <%= form_with url: "/pages/#{page.id}/analyze", method: :post do %>
+      <%= submit_tag 'analyze' %>
+    <% end %>
     <pre><%= page.analyzed_content %></pre>
   </div>
 </div>

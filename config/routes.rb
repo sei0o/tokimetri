@@ -10,7 +10,7 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   resources :pages
-  post "/pages/:id/analyze", to: "pages#analyze", as: :page_analyze
+  post "/pages/:id/analyze", to: "pages#analyze", as: :analyze
   get "/view", to: "pages#view", as: :view
 
   get "/about", to: "pages#about", as: :about
