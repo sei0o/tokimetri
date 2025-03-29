@@ -4,23 +4,17 @@ class PagesController < ApplicationController
   end
 
   def today
+    @yesterday = Date.today - 1.day
+    @yesterday_page = Page.find_by(date: @yesterday)
+
+    @tomorrow = Date.today + 1.day
+    @tomorrow_page = Page.find_by(date: @tomorrow)
+
     @page = Page.find_by(date: Date.today)
     if @page.nil?
       @page = Page.new(date: Date.today)
-      @yesterday = @page.date - 1.day
-      @yesterday_page = Page.find_by(date: @yesterday)
-
-      @tomorrow = @page.date + 1.day
-      @tomorrow_page = Page.find_by(date: @tomorrow)
-      
       render :new
-    else
-      @yesterday = @page.date - 1.day
-      @yesterday_page = Page.find_by(date: @yesterday)
-
-      @tomorrow = @page.date + 1.day
-      @tomorrow_page = Page.find_by(date: @tomorrow)
-      
+    else  
       render :show
     end
   end

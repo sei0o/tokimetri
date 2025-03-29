@@ -2,72 +2,10 @@
   <%= stylesheet_link_tag "actiontext", "data-turbo-track": "reload" %>
 <% end %>
 
-<style>
-  #editor {
-    width: 100%;
-  }
-
-  #editor-text {
-    width: 100%;
-    background-color: white;
-    font-size: 1.1rem;
-    margin: 0;
-  }
-
-  #dailynav {
-    text-align: center;
-  }
-
-  #dailynav h1 {
-    display: inline;
-    margin: 0;
-  }
-  
-  .save-status {
-    margin-left: 10px;
-    font-size: 0.9rem;
-    font-style: italic;
-    color: #666;
-  }
-</style>
-
-<nav id="dailynav">
-  <% if @yesterday_page %>
-    <a href="/pages/<%= @yesterday_page.id %>">◀</a>
-  <% else %>
-    <a href="/pages/new?date=<%= @yesterday %>">◀</a>
-  <% end %>
-  <h1>
-    <%= @page.date %>
-  </h1>
-  <% if @tomorrow_page %>
-    <a href="/pages/<%= @tomorrow_page.id %>">▶</a>
-  <% else %>
-    <a href="/pages/new?date=<%= @tomorrow %>">▶</a>
-  <% end %>
-</nav>
-
-<div id="container">
-<div id="editor" data-controller="editor">
-  <%= form_with model: @page, data: { editor_target: "form", turbo_stream: true } do |form| %>
-    <nav>
-      <%= form.hidden_field :date, value: @page.date %>
-      <%= form.submit %>
-      <span id="editor-status" data-editor-target="status" class="save-status"></span>
-    </nav>
-    <div id="editor-text">
-      <%= form.rich_text_area :content, value: @page.content %>
-    </div>
-
-  <% end %>
-
-</div>
-
-  <div id="analyzed">
-    <h2>Analysis</h2>
-    <form action="/pages/<%= @page.id %>/analyze" method="post">
-      <input type='submit' value='analyze'>
-    </form>
-    <pre><%= @page.analyzed_content %></pre>
-  </div>
-</div>
+<%= render 'editor', 
+  page: @page, 
+  yesterday_page: @yesterday_page, 
+  yesterday: @yesterday, 
+  tomorrow_page: @tomorrow_page, 
+  tomorrow: @tomorrow
+%>
