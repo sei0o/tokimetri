@@ -4,7 +4,7 @@ class Page < ApplicationRecord
   validates :content, presence: true
 
   def analyze_and_update
-    client = OpenAI::Client.new(access_token: ENV['OPENAI_API_KEY'])
+    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
     response = client.responses.create(
       parameters: {
         model: 'gpt-4o',
