@@ -1,5 +1,5 @@
 class Page < ApplicationRecord
-  has_rich_text :content
+  # has_rich_text :content
   validates :date, presence: true
   validates :content, presence: true
 

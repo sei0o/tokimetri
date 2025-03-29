@@ -12,6 +12,15 @@
     margin: 0;
   }
 
+  #editor-text textarea {
+    width: 100%;
+    height: 80vh;
+    font-size: 1.1rem;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
   #dailynav {
     text-align: center;
   }
@@ -54,7 +63,8 @@
         <span id="editor-status" data-editor-target="status" class="save-status"></span>
       </nav>
       <div id="editor-text">
-        <%= form.rich_text_area :content, value: page.content %>
+        <%# form.rich_text_area :content, value: page.content %>
+        <%= form.text_area :content, value: page.content %>
       </div>
     <% end %>
   </div>
