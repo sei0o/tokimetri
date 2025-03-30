@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["form", "status"]
+  static targets = ["form", "status", "textarea"]
   
   connect() {
     this.timeout = null
@@ -9,12 +9,11 @@ export default class extends Controller {
   }
   
   setupAutoSave() {
-    // Get the Trix editor element
-    const trixEditor = this.element.querySelector("trix-editor")
+    const editor = this.element.querySelector("editor-text > textarea")
     
-    if (trixEditor) {
+    if (editor) {
       // Listen for input events on the Trix editor
-      trixEditor.addEventListener("trix-change", () => {
+      editor.addEventListener("input", () => {
         this.scheduleAutoSave()
       })
     }
@@ -39,13 +38,18 @@ export default class extends Controller {
   
   autoSave() {
     if (this.hasFormTarget) {
-      // Set status to "Saving..."
-      if (this.hasStatusTarget) {
-        this.statusTarget.textContent = "Saving..."
-      }
+      this.statusTarget.textContent = "Saving..."
       
-      // Submit the form using Turbo
       this.formTarget.requestSubmit()
+
+      this.statusTarget.textContent = "Saved"
     }
+  }
+
+  appendTime() {
+    const s = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    this.textareaTarget.value += s
+
+    this.scheduleAutoSave()
   }
 }
