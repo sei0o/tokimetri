@@ -4,15 +4,26 @@ class PagesController < ApplicationController
   end
 
   def today
-    @yesterday = Date.today - 1.day
+    redirect_to date_path(Date.today.strftime("%Y%m%d"))
+  end
+
+  def date
+    begin 
+      @date = Date.parse(params[:date])
+    rescue Date::Error
+      redirect_to today_path
+      return
+    end
+
+    @yesterday = @date - 1.day
     @yesterday_page = Page.find_by(date: @yesterday)
 
-    @tomorrow = Date.today + 1.day
+    @tomorrow = @date + 1.day
     @tomorrow_page = Page.find_by(date: @tomorrow)
 
-    @page = Page.find_by(date: Date.today)
+    @page = Page.find_by(date: @date)
     if @page.nil?
-      @page = Page.new(date: Date.today)
+      @page = Page.new(date: @date)
       render :new
     else  
       render :show
@@ -22,6 +33,7 @@ class PagesController < ApplicationController
   def view
     require 'csv'
     @pages = Page.where.not(analyzed_content: nil)
+    @categories = Page::CATEGORIES
   end
 
   def show

@@ -3,6 +3,19 @@ class Page < ApplicationRecord
   validates :date, presence: true
   validates :content, presence: true
 
+  ## maps between category name and color
+  CATEGORIES = {
+    '睡眠' => '#3c4c5d',
+    '事務' => '#2d8a44',
+    '研究' => '#4175c9',
+    '趣味' => '#c43dad',
+    'だらだら' => '#eb0348',
+    '娯楽' => '#b16128',
+    '生活' => '#46843e',
+    '仕事' => '#357e9e',
+  }
+  
+
   def analyze_and_update
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
     response = client.responses.create(
@@ -20,6 +33,7 @@ class Page < ApplicationRecord
   private
     def prompt
       today = self.date.strftime('%Y/%m/%d')
+      cat = CATEGORIES.map { |k, v| "「#{k}」" }.join
 
       <<-PROMPT
       #{self.content}      
@@ -35,7 +49,7 @@ class Page < ApplicationRecord
       
       のように何をしていたかわかるようにCSVでまとめてください。start,endカラムはyyyy-MM-dd HH:mmの形式とします。わからない部分は_で埋めてください。何をしていたか読み取れない時間帯も,_で埋めてください。また、
       
-      - categoryについては、what列の情報をもとに、「睡眠」「事務作業」「研究」「趣味」「だらだら」「娯楽」「生活」「仕事」のうち、一番近いもので埋めてください。
+      - categoryについては、what列の情報をもとに、#{cat}のうち、一番近いもので埋めてください。
       - 「Tier4」は仕事のことです。
       - 「日記アプリの開発」は趣味カテゴリです。
       - 睡眠は睡眠カテゴリです。睡眠以外のタスクは睡眠カテゴリに分類しないでください。

@@ -38,19 +38,11 @@
 </style>
 
 <nav id="dailynav">
-  <% if yesterday_page %>
-    <a href="/pages/<%= yesterday_page.id %>">◀</a>
-  <% else %>
-    <a href="/pages/new?date=<%= yesterday %>">◀</a>
-  <% end %>
+  <a href="/day/<%= yesterday %>">◀</a>
   <h1>
     <%= page.date %>
   </h1>
-  <% if tomorrow_page %>
-    <a href="/pages/<%= tomorrow_page.id %>">▶</a>
-  <% else %>
-    <a href="/pages/new?date=<%= tomorrow %>">▶</a>
-  <% end %>
+  <a href="/day/<%= tomorrow %>">▶</a>
 </nav>
 
 <div id="container">

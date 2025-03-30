@@ -168,7 +168,7 @@
         <div class="hday-slot" 
              style="left: calc(100% * <%= position[:left_pos] %>); 
                     width: calc(100% * <%= position[:width] %>);
-                    background-color: <%= category_color(position[:category]) %>;" 
+                    background-color: <%= @categories[position[:category]] %>;" 
              title="<%= position[:title] %>"></div>
       <% end %>
     </div>
@@ -176,35 +176,14 @@
 <% end %>
 
 <div class="calendar-container" data-controller="calendar" data-calendar-pages-value='<%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>' style="height: 600px">
+
   <div class="calendar-legend">
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #4285F4;"></div>
-      <span>事務</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #0F9D58;"></div>
-      <span>研究</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #9C27B0;"></div>
-      <span>趣味</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #9E9E9E;"></div>
-      <span>だらだら</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #FF9800;"></div>
-      <span>娯楽</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #009688;"></div>
-      <span>生活</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-color" style="background-color: #DB4437;"></div>
-      <span>仕事</span>
-    </div>
+    <% @categories.each do |name, color| %>
+      <div class="legend-item">
+      <div class="legend-color" style="background-color: <%= color %>;"></div>
+      <span><%= name %></span>
+      </div>
+    <% end %>
   </div>
   
   <div class="calendar-controls">

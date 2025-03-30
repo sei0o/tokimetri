@@ -80,16 +80,4 @@ module PagesHelper
       title: "#{line[2]} (#{line[0]} - #{line[1]})"
     }
   end
-  
-  def category_color(category)
-    {
-      '事務' => '#4285F4',
-      '研究' => '#0F9D58',
-      '趣味' => '#9C27B0',
-      'だらだら' => '#9E9E9E',
-      '娯楽' => '#FF9800',
-      '生活' => '#009688',
-      '仕事' => '#DB4437'
-    }[category] || '#808080'
-  end
 end

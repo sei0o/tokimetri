@@ -1,5 +1,83 @@
-<ul id="pages">
-  <% @pages.each do |page| %>
-    <li><%= link_to page.date, page %></li>
+<style>
+  #pages {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  #pages li {
+    display: inline;
+    margin-right: 10px;
+  }
+
+  #calendar {
+    max-width: 600px;
+    margin: 20px auto;
+  }
+
+  #calendar h3 {
+    margin: 0;
+    margin-bottom: 10px;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+  }
+
+  .calendar-day {
+    padding: 5px;
+    text-align: center;
+  }
+
+  .calendar-day a {
+    display: block;
+    padding: 5px;
+    text-decoration: none;
+    color: black;
+  }
+  
+  .calendar-day a:hover {
+    text-decoration: underline;
+  }
+
+  .calendar-day a.exists {
+    color:rgb(38, 107, 181);
+  }
+  
+  .calendar-day a.nonexist {
+    color: #888;
+  }
+</style>
+<div id="calendar">
+  <% @pages.group_by { |page| page.date.beginning_of_month }.each do |month, pages| %>
+    <h3><%= month.strftime("%Y/%m") %></h3>
+    <div class="calendar-grid">
+      <% %w(Sun Mon Tue Wed Thu Fri Sat).each do |day_name| %>
+      <div class="calendar-day"><strong><%= day_name %></strong></div>
+      <% end %>
+    </div>
+    <div class="calendar-grid">
+      <% first_day = Date.new(month.year, month.month, 1) %>
+      <% first_day_wday = Date.new(month.year, month.month, 1).wday %>
+      <% first_day_wday.downto(1) do |k| %>
+        <div class="calendar-day">
+          <% d = first_day - k.days %>
+          <a href="/day/<%= d.strftime("%Y%m%d") %>" class="nonexist"><%= d.day %></a>
+        </div>
+      <% end %>
+      <% (1..Time.days_in_month(month.month, month.year)).each do |day| %>
+        <% date = Date.new(month.year, month.month, day) %>
+        <% page = pages.find { |p| p.date == date } %>
+        <div class="calendar-day">
+          <% if page %>
+            <a href="/day/<%= date.strftime("%Y%m%d") %>" class="exists"><%= day %></a>
+          <% else %>
+            <a href="/day/<%= date.strftime("%Y%m%d") %>" class="nonexist"><%= day %></a>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
   <% end %>
-</ul>
+</div>

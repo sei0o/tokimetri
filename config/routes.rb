@@ -9,8 +9,11 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
-  resources :pages
+  resources :pages, except: [:edit, :show, :new]
   post "/pages/:id/analyze", to: "pages#analyze", as: :analyze
+
+  get "/day/:date", to: "pages#date", as: :date
+
   get "/view", to: "pages#view", as: :view
 
   get "/about", to: "pages#about", as: :about
