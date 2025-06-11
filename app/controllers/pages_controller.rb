@@ -1,4 +1,8 @@
 class PagesController < ApplicationController
+  before_action :parse_and_set_date, only: [:show, :create, :update, :destroy, :analyze]
+  before_action :set_page, only: [:show, :create, :update, :destroy, :analyze]
+  before_action :set_navigation_pages, only: [:show]
+
   def index
     @pages = Page.all
   end
@@ -7,26 +11,11 @@ class PagesController < ApplicationController
     redirect_to date_path(Date.today.strftime("%Y%m%d"))
   end
 
-  def date
-    begin 
-      @date = Date.parse(params[:date])
-    rescue Date::Error
-      redirect_to today_path
-      return
-    end
-
-    @yesterday = @date - 1.day
-    @yesterday_page = Page.find_by(date: @yesterday)
-
-    @tomorrow = @date + 1.day
-    @tomorrow_page = Page.find_by(date: @tomorrow)
-
-    @page = Page.find_by(date: @date)
-    if @page.nil?
-      @page = Page.new(date: @date)
-      render :new
-    else  
+  def show
+    if @page.persisted?
       render :show
+    else
+      render :new
     end
   end
   
@@ -36,52 +25,30 @@ class PagesController < ApplicationController
     @categories = Page::CATEGORIES
   end
 
-  def show
-    @page = Page.find(params[:id])
-
-    @yesterday = @page.date - 1.day
-    @yesterday_page = Page.find_by(date: @yesterday)
-
-    @tomorrow = @page.date + 1.day
-    @tomorrow_page = Page.find_by(date: @tomorrow)
-  end
-
-  def new
-    @page = Page.new(date: params[:date])
-
-    @yesterday = @page.date - 1.day
-    @yesterday_page = Page.find_by(date: @yesterday)
-
-    @tomorrow = @page.date + 1.day
-    @tomorrow_page = Page.find_by(date: @tomorrow)
-  end
-
   def create
-    @page = Page.new(page_params)
+    @page.assign_attributes(page_params)
     if @page.save
-      redirect_to @page
+      redirect_to date_path(@date.strftime("%Y%m%d"))
     else
+      set_navigation_pages
       render :new
     end
   end
 
-  def edit
-    @page = Page.find(params[:id])
-  end
-
   def update
-    @page = Page.find(params[:id])
     if @page.update(page_params)
       respond_to do |format|
-        format.html { redirect_to @page }
+        format.html { redirect_to date_path(@date.strftime("%Y%m%d")) }
         format.turbo_stream { 
           render turbo_stream: turbo_stream.update("editor-status", partial: "pages/save_status", locals: { status: "Saved" })
         }
       end
     else
-      puts "fail"
       respond_to do |format|
-        format.html { render :edit, status: :unprocessable_entity }
+        format.html { 
+          set_navigation_pages
+          render :show, status: :unprocessable_entity 
+        }
         format.turbo_stream { 
           render turbo_stream: turbo_stream.update("editor-status", partial: "pages/save_status", locals: { status: "Error saving" })
         }
@@ -90,23 +57,42 @@ class PagesController < ApplicationController
   end
 
   def analyze
-    @page = Page.find(params[:id])
     if @page.analyze_and_update
-      redirect_to @page
+      redirect_to date_path(@date.strftime("%Y%m%d"))
     else
+      set_navigation_pages
       render :show
     end
   end
 
   def destroy
-    @page = Page.find(params[:id])
     @page.destroy
     redirect_to pages_path
   end
 
-
   private
-    def page_params
-      params.expect(page: [ :date, :content ])
-    end
+
+  def parse_and_set_date
+    @date = Date.parse(params[:date])
+  rescue Date::Error
+    redirect_to today_path
+  end
+
+  def set_page
+    @page = Page.find_by(date: @date) || Page.new(date: @date)
+  end
+
+  def set_navigation_pages
+    return unless @date
+    
+    @yesterday = @date - 1.day
+    @yesterday_page = Page.find_by(date: @yesterday)
+    
+    @tomorrow = @date + 1.day
+    @tomorrow_page = Page.find_by(date: @tomorrow)
+  end
+
+  def page_params
+    params.expect(page: [ :date, :content ])
+  end
 end

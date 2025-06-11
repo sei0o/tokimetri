@@ -9,15 +9,17 @@ Rails.application.routes.draw do
   get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
-  resources :pages, except: [:edit, :show, :new]
-  post "/pages/:id/analyze", to: "pages#analyze", as: :analyze
+  # 日付ベースのルート（メイン）
+  get "/day/:date", to: "pages#show", as: :date
+  post "/day/:date", to: "pages#create", as: :create_date_page
+  patch "/day/:date", to: "pages#update", as: :update_date_page
+  delete "/day/:date", to: "pages#destroy", as: :destroy_date_page
+  post "/day/:date/analyze", to: "pages#analyze", as: :analyze_date_page
 
-  get "/day/:date", to: "pages#date", as: :date
-
+  # その他のルート
+  resources :pages, only: [:index]
   get "/view", to: "pages#view", as: :view
-
   get "/about", to: "pages#about", as: :about
-
   get "/today", to: "pages#today", as: :today
 
   root "pages#index"
