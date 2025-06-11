@@ -18,8 +18,6 @@ class Page < ApplicationRecord
 
   def analyze_and_update
     # show rails env
-    pp Rails.env
-    pp Rails.application.credentials.openai
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
     response = client.responses.create(
       parameters: {

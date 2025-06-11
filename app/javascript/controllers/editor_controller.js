@@ -47,7 +47,7 @@ export default class extends Controller {
   }
 
   appendTime() {
-    const s = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    const s = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
     this.textareaTarget.value += s
 
     this.scheduleAutoSave()
