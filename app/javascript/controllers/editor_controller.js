@@ -6,8 +6,38 @@ export default class extends Controller {
   connect() {
     this.timeout = null
     this.setupAutoSave()
+    console.log(this)
+
+    this.textareaTarget.addEventListener("keydown", this.handleTab);
   }
-  
+
+  disconnect() {
+    this.textareaTarget.removeEventListener("keydown", this.handleTab);
+  }
+
+  handleTab(e) {
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const start = this.selectionStart;
+      const end = this.selectionEnd;
+      const value = this.value;
+
+      if (e.shiftKey) {
+        // Unindent: remove up to 2 spaces before the cursor
+        const before = value.substring(0, start);
+        const after = value.substring(end);
+        const unindentedBefore = before.replace(/ {1,2}$/, "");
+        const removed = before.length - unindentedBefore.length;
+        this.value = unindentedBefore + after;
+        this.selectionStart = this.selectionEnd = start - removed;
+      } else {
+        // Indent: insert 2 spaces at the cursor
+        this.value = value.substring(0, start) + "  " + value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 2;
+      }
+    }
+  };  
+
   setupAutoSave() {
     const editor = this.element.querySelector("editor-text > textarea")
     
