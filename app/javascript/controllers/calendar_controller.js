@@ -1,5 +1,4 @@
 import { Controller } from "@hotwired/stimulus"
-import Calendar from "@toast-ui/calendar"
 
 export default class extends Controller {
   static targets = [
