@@ -39,10 +39,8 @@ export default class extends Controller {
   };  
 
   setupAutoSave() {
-    const editor = this.element.querySelector("editor-text > textarea")
-    
+    const editor = this.textareaTarget
     if (editor) {
-      // Listen for input events on the Trix editor
       editor.addEventListener("input", () => {
         this.scheduleAutoSave()
       })
