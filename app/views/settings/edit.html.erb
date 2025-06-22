@@ -12,6 +12,56 @@
         <%= f.text_area :prompt, "data-editor-target": "textarea" %>
       </div>
   </div>
+
+  <%= f.label :categories, "カテゴリ" %>
+  <div>
+    <div id="categories-fields">
+      <% (@setting.categories || []).each_with_index do |category, i| %>
+        <div class="category-pair">
+          <%= f.text_field :categories, name: "setting[categories][#{i}][name]", value: category['name'], placeholder: "カテゴリ名" %>
+          <%= f.color_field :categories, name: "setting[categories][#{i}][color]", value: category['color'] || "#000000" %>
+          <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
+        </div>
+      <% end %>
+    </div>
+    <button type="button" id="add-category">＋カテゴリ追加</button>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        let index = <%= (@setting.categories || []).size %>;
+        document.getElementById("add-category").addEventListener("click", function() {
+          const container = document.getElementById("categories-fields");
+          const div = document.createElement("div");
+          div.className = "category-pair";
+          div.innerHTML = `
+            <input type="text" name="setting[categories][${index}][name]" placeholder="カテゴリ名" />
+            <input type="color" name="setting[categories][${index}][color]" value="#000000" />
+            <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
+          `;
+          container.appendChild(div);
+          index++;
+        });
+      });
+    </script>
+    <style>
+      .category-pair {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .remove-category {
+        background: #eee;
+        border: none;
+        color: #c00;
+        cursor: pointer;
+        padding: 0.2rem 0.5rem;
+        border-radius: 3px;
+      }
+    </style>
+  </div>
+
+
   <%= f.submit "保存" %>
 <% end %>
 

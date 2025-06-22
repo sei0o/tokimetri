@@ -2,6 +2,8 @@
 
 one:
   prompt: MyText
+  categories: MyString
 
 two:
   prompt: MyText
+  categories: MyString

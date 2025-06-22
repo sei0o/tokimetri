@@ -6,15 +6,15 @@ class SettingsController < ApplicationController
   def update
     @setting = Setting.instance
     if @setting.update(setting_params)
-      redirect_to edit_settings_path, notice: "設定を更新しました"
+      redirect_to edit_setting_path, notice: '設定を更新しました。'
     else
-      render :edit
+      render :edit, alert: '設定の更新に失敗しました。'
     end
   end
 
   private
-
+  
   def setting_params
-    params.require(:setting).permit(:enable_feature_x, :max_items, :theme)
+    params.expect(setting: [ :prompt, :categories ])
   end
 end

@@ -20,9 +20,11 @@ Rails.application.routes.draw do
 
   # その他のルート
   resources :pages, only: [:index]
+  resources :settings, only: [:edit, :update]
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
   get "/today", to: "pages#today", as: :today
+  get "/try", to: "pages#try", as: :try
 
   get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings
