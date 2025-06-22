@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get "settings/edit"
+  get "settings/update"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
@@ -21,6 +23,9 @@ Rails.application.routes.draw do
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
   get "/today", to: "pages#today", as: :today
+
+  get "/settings", to: "settings#edit", as: :settings
+  patch "/settings", to: "settings#update", as: :update_settings
 
   root "pages#index"
 end

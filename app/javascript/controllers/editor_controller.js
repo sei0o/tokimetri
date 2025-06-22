@@ -8,14 +8,14 @@ export default class extends Controller {
     this.setupAutoSave()
     console.log(this)
 
-    this.textareaTarget.addEventListener("keydown", this.handleTab);
+    this.textareaTarget.addEventListener("keydown", this.handleKey);
   }
 
   disconnect() {
-    this.textareaTarget.removeEventListener("keydown", this.handleTab);
+    this.textareaTarget.removeEventListener("keydown", this.handleKey);
   }
 
-  handleTab(e) {
+  handleKey(e) {
     if (e.key === "Tab") {
       e.preventDefault();
       const start = this.selectionStart;
@@ -36,6 +36,11 @@ export default class extends Controller {
         this.selectionStart = this.selectionEnd = start + 2;
       }
     }
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      this.save();
+    }
   };  
 
   setupAutoSave() {
@@ -48,23 +53,20 @@ export default class extends Controller {
   }
   
   scheduleAutoSave() {
-    // Clear any existing timeout
     if (this.timeout) {
       clearTimeout(this.timeout)
     }
     
-    // Set status to "Editing..."
     if (this.hasStatusTarget) {
       this.statusTarget.textContent = "Editing..."
     }
     
-    // Set a new timeout for 3 seconds
     this.timeout = setTimeout(() => {
-      this.autoSave()
+      this.save()
     }, 2000)
   }
   
-  autoSave() {
+  save() {
     if (this.hasFormTarget) {
       this.statusTarget.textContent = "Saving..."
       
