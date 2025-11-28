@@ -50,3 +50,16 @@ body {
 #pagenav a:hover {
   text-decoration: underline;
 }
+
+/* On small screens make the container span the full viewport width. */
+@media (max-width: 600px) {
+  #container {
+    max-width: none;
+    margin: 0;
+    /* avoid forcing exact viewport height on small devices */
+    height: auto;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+}
+

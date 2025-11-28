@@ -157,7 +157,11 @@
 
 <% activities_by_date(@pages).each do |date, v| %>
   <div class="hday-line">
-    <div class="date-header"><%= date.to_date.strftime("%m/%d") %></div>
+    <div class="date-header">
+      <a href="/day/<%= date.to_date.strftime("%Y%m%d") %>">
+        <%= date.to_date.strftime("%m/%d") %>
+      </a>
+    </div>
     <div class="hday">
       <% v.each do |line| %>
         <% position = calculate_hday_slot_position(line, date) %>

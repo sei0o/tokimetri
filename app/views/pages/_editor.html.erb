@@ -19,6 +19,7 @@
     margin: 1rem 0 0 0;
     outline: none;
     box-shadow: none;
+    line-height: 1.6;
   }
 
   #dailynav {
@@ -48,7 +49,7 @@
   <a href="/day/<%= nextweek %>">▼</a>
 </nav>
 
-<div id="container">
+<div>
   <div id="editor" data-controller="editor">
     <% 
       form_url = page.persisted? ? update_date_page_path(page.date.strftime("%Y%m%d")) : create_date_page_path(page.date.strftime("%Y%m%d"))
