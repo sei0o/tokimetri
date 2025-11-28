@@ -12,17 +12,13 @@ class PagesController < ApplicationController
   end
 
   def show
-    if @page.persisted?
-      render :show
-    else
-      render :new
-    end
+    render :show
   end
   
   def view
     require 'csv'
     @pages = Page.where.not(analyzed_content: nil)
-    @categories = Page::CATEGORIES
+    @categories = Setting.instance.categories
   end
 
   def create
@@ -31,7 +27,7 @@ class PagesController < ApplicationController
       redirect_to date_path(@date.strftime("%Y%m%d"))
     else
       set_navigation_pages
-      render :new
+      render :show
     end
   end
 
@@ -90,6 +86,12 @@ class PagesController < ApplicationController
     
     @tomorrow = @date + 1.day
     @tomorrow_page = Page.find_by(date: @tomorrow)
+
+    @lastweek = @date - 7.days
+    @lastweek_page = Page.find_by(date: @lastweek)
+
+    @nextweek = @date + 7.days
+    @nextweek_page = Page.find_by(date: @nextweek)
   end
 
   def page_params

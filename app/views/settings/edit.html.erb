@@ -1,11 +1,11 @@
 <%= form_with model: @setting, url: settings_path, method: :put do |f| %>
-    <%= f.label :prompt, "プロンプト" %>
+  <%= f.label :prompt, "プロンプト" %>
   <div id="editor" data-controller="editor">
       <nav>
+        <%= form.submit 'Save' %>
         <span id="editor-status" data-editor-target="status" class="save-status"></span>
         <br>
         <small>
-            
         </small>
       </nav>
       <div id="editor-text">
@@ -25,45 +25,45 @@
       <% end %>
     </div>
     <button type="button" id="add-category">＋カテゴリ追加</button>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function() {
-        let index = <%= (@setting.categories || []).size %>;
-        document.getElementById("add-category").addEventListener("click", function() {
-          const container = document.getElementById("categories-fields");
-          const div = document.createElement("div");
-          div.className = "category-pair";
-          div.innerHTML = `
-            <input type="text" name="setting[categories][${index}][name]" placeholder="カテゴリ名" />
-            <input type="color" name="setting[categories][${index}][color]" value="#000000" />
-            <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
-          `;
-          container.appendChild(div);
-          index++;
-        });
-      });
-    </script>
-    <style>
-      .category-pair {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-      }
-      .remove-category {
-        background: #eee;
-        border: none;
-        color: #c00;
-        cursor: pointer;
-        padding: 0.2rem 0.5rem;
-        border-radius: 3px;
-      }
-    </style>
   </div>
 
 
   <%= f.submit "保存" %>
 <% end %>
+
+
+<script>
+    let index = <%= (@setting.categories || []).size %>;
+    document.getElementById("add-category").addEventListener("click", function() {
+      const container = document.getElementById("categories-fields");
+      const div = document.createElement("div");
+      div.className = "category-pair";
+      div.innerHTML = `
+        <input type="text" name="setting[categories][${index}][name]" placeholder="カテゴリ名" />
+        <input type="color" name="setting[categories][${index}][color]" value="#000000" />
+        <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
+      `;
+      container.appendChild(div);
+      index++;
+    });
+</script>
+
+<style>
+  .category-pair {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .remove-category {
+    background: #eee;
+    border: none;
+    color: #c00;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+  }
+</style>
 
 <style>
   #editor {

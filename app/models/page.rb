@@ -3,19 +3,6 @@ class Page < ApplicationRecord
   validates :date, presence: true
   validates :content, presence: true
 
-  ## maps between category name and color
-  CATEGORIES = {
-    '睡眠' => '#3c4c5d',
-    '事務' => '#2d8a44',
-    '研究' => '#4175c9',
-    '趣味' => '#c43dad',
-    'だらだら' => '#eb0348',
-    '娯楽' => '#b16128',
-    '生活' => '#46843e',
-    '仕事' => '#357e9e',
-  }
-  
-
   def analyze_and_update
     # show rails env
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
@@ -34,7 +21,7 @@ class Page < ApplicationRecord
   private
     def prompt
       today = self.date.strftime('%Y/%m/%d')
-      cat = CATEGORIES.map { |k, v| "「#{k}」" }.join
+      cat = Setting.instance.categories.map { |k, v| "「#{k}」" }.join
 
       <<-PROMPT
       #{self.content}      

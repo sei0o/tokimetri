@@ -39,11 +39,13 @@
 </style>
 
 <nav id="dailynav">
+  <a href="/day/<%= lastweek %>">▲</a>
   <a href="/day/<%= yesterday %>">◀</a>
   <h1>
-    <%= page.date %>
+    <%= page.date.strftime("%Y/%m/%d %a") %>
   </h1>
   <a href="/day/<%= tomorrow %>">▶</a>
+  <a href="/day/<%= nextweek %>">▼</a>
 </nav>
 
 <div id="container">
