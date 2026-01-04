@@ -61,6 +61,22 @@ class PagesController < ApplicationController
     end
   end
 
+  def review
+    # 先週の記録を全部出す（月曜始まり）
+
+    @startdate = Date.today.beginning_of_week
+    @enddate = @startdate.end_of_week
+
+    @pages_thisweek = Page.where(date: @startdate..@enddate).order(:date)
+
+    @lastweek_startdate = @startdate - 7.days
+    @lastweek_enddate = @enddate - 7.days
+    @pages_lastweek = Page.where(date: @lastweek_startdate..@lastweek_enddate).order(:date)
+
+    render :review
+  end
+
+
   def destroy
     @page.destroy
     redirect_to pages_path

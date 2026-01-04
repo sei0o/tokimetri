@@ -1,0 +1,40 @@
+
+<h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
+
+<% @pages_thisweek.each do |page| %>
+  <div>
+    <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
+    <%= page.content.gsub("\n", "<br>").html_safe %>
+  </div>
+<% end %>
+
+<h2><%= @lastweek_startdate.strftime("%Y/%m/%d") %> ~ <%= @lastweek_enddate.strftime("%Y/%m/%d") %></h2>
+
+<% @pages_lastweek.each do |page| %>
+  <div>
+    <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
+    <%= page.content.gsub("\n", "<br>").html_safe %>
+  </div>
+<% end %>
+
+<hr>
+
+<h2>Analysis</h2>
+
+<% @pages_thisweek.each do |page| %>
+  <% if page.analyzed_content %>
+      <div>
+        <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
+        <%= page.analyzed_content.gsub("\n", "<br>").html_safe %>
+      </div>
+  <% end %>
+<% end %>
+
+<% @pages_lastweek.each do |page| %>
+  <% if page.analyzed_content %>
+      <div>
+        <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
+        <%= page.analyzed_content.gsub("\n", "<br>").html_safe %>
+      </div>
+  <% end %>
+<% end %>
