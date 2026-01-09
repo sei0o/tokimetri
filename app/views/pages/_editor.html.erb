@@ -37,6 +37,11 @@
     font-style: italic;
     color: #666;
   }
+
+  .guide {
+    color: #999;
+    font-size: 0.9rem;
+  }
 </style>
 
 <nav id="dailynav">
@@ -48,6 +53,11 @@
   <a href="/day/<%= tomorrow %>">▶</a>
   <a href="/day/<%= nextweek %>">▼</a>
 </nav>
+
+
+<a class="guide" href="https://scrapbox.io/sei0o/30min_check">30min check</a>
+<a class="guide" href="https://scrapbox.io/sei0o/tokimetri">dev ideas</a>
+
 
 <div>
   <div id="editor" data-controller="editor">
@@ -67,6 +77,8 @@
         <%# form.rich_text_area :content, value: page.content %>
         <%= form.text_area :content, value: page.content, "data-editor-target": "textarea" %>
       </div>
+    
+      <button id="append-time" data-action="editor#appendTime">現在時刻を追記</button>
     <% end %>
   </div>
 
