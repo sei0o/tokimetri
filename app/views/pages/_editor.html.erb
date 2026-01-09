@@ -42,6 +42,23 @@
     color: #999;
     font-size: 0.9rem;
   }
+
+  .category_durations {
+    padding: 0;
+  }
+
+  .category_durations span {
+    margin-bottom: 0.2rem;
+    font-size: 1.5rem;
+  }
+
+  .legend-color {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 3px;
+  }
 </style>
 
 <nav id="dailynav">
@@ -77,7 +94,6 @@
         <% end %>
       </nav>
       <div id="editor-text">
-        <%# form.rich_text_area :content, value: page.content %>
         <%= form.text_area :content, value: page.content, "data-editor-target": "textarea" %>
       </div>
     
@@ -105,6 +121,18 @@
     <div>
       <h2>Records</h2>
       <% if page.records.any? %>
+        <div class="category_durations">
+          <% page.category_durations_minutes.each do |category, duration| %>
+            <span>
+              <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
+              <%= category %>
+              <span class="category">
+                <%= "#{duration/60}h#{duration%60}m" %>
+              </span>
+            </span>
+          <% end %>
+        </div>
+
         <table>
           <thead>
             <tr>
@@ -125,17 +153,12 @@
                               nil
                             end
                %>
-              <% duration_min = if record.start_time && end_or_now
-                              ((end_or_now - record.start_time) / 60).to_i
-                            else
-                              nil
-                            end %>
-              <tr class="record" style="height: <%= [1, 1 + (duration_min || 0 - 20) / 20.0].max %>rem">
+              <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem">
                 <td><%= record.start_time&.strftime("%H:%M") %></td>
                 <td><%= record.end_time&.strftime("%H:%M") %></td>
                 <td>
-                  <% if duration_min %>
-                    <%= "#{duration_min} min" %>
+                  <% if record.duration_minutes %>
+                    <%= "#{record.duration_minutes} min" %>
                   <% else %>
                     ?
                   <% end %>

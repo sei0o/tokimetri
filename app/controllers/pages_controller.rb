@@ -12,6 +12,7 @@ class PagesController < ApplicationController
   end
 
   def show
+    @categories = Setting.instance.categories
     render :show
   end
   

@@ -33,6 +33,18 @@ class Page < ApplicationRecord
     end
   end
 
+  def category_durations_minutes
+    summary = Hash.new(0)
+    
+    records.each do |record|
+      if dur = record.duration_minutes 
+        summary[record.category] += dur
+      end
+    end
+    
+    summary.sort_by { |_, duration| -duration }
+  end
+
   private
     def prompt
       today = self.date.strftime('%Y/%m/%d')
