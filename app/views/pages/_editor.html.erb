@@ -64,6 +64,7 @@
     <% 
       form_url = page.persisted? ? update_date_page_path(page.date.strftime("%Y%m%d")) : create_date_page_path(page.date.strftime("%Y%m%d"))
       form_method = page.persisted? ? :patch : :post
+      today_or_yesterday = (page.date == Date.today || page.date == Date.yesterday)
     %>
     <%= form_with model: page, url: form_url, method: form_method, data: { editor_target: "form", turbo_stream: true } do |form| %>
       <%= form.hidden_field :date, value: page.date %>
@@ -71,14 +72,18 @@
         <%= form.submit 'Save' %>
         <span id="editor-status" data-editor-target="status" class="save-status"></span>
         <br>
-        <button id="append-time" data-action="editor#appendTime">現在時刻を追記</button>
+        <% if today_or_yesterday %>
+          <button id="append-time" data-action="editor#appendTime">現在時刻を追記</button>
+        <% end %>
       </nav>
       <div id="editor-text">
         <%# form.rich_text_area :content, value: page.content %>
         <%= form.text_area :content, value: page.content, "data-editor-target": "textarea" %>
       </div>
     
-      <button id="append-time" data-action="editor#appendTime">現在時刻を追記</button>
+      <% if today_or_yesterday %>
+        <button id="append-time" data-action="editor#appendTime">現在時刻を追記</button>
+      <% end %>
     <% end %>
   </div>
 
