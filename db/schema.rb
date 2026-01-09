@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_22_085640) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_09_194613) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -57,6 +57,17 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_22_085640) do
     t.text "analyzed_content"
   end
 
+  create_table "records", force: :cascade do |t|
+    t.datetime "start_time"
+    t.datetime "end_time"
+    t.string "what"
+    t.string "category"
+    t.integer "page_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["page_id"], name: "index_records_on_page_id"
+  end
+
   create_table "settings", force: :cascade do |t|
     t.text "prompt"
     t.string "categories"
@@ -66,4 +77,5 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_22_085640) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "records", "pages"
 end

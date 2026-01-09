@@ -3,6 +3,8 @@ class Page < ApplicationRecord
   validates :date, presence: true
   validates :content, presence: true
 
+  has_many :records, dependent: :destroy
+
   def analyze_and_update
     # show rails env
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
@@ -16,6 +18,19 @@ class Page < ApplicationRecord
     pp response
 
     self.update(analyzed_content: response.dig('output', 0, 'content', 0, 'text'))
+
+    # add records
+    self.records.destroy_all
+    
+    csv_data = CSV.parse(self.analyzed_content, headers: true)
+    csv_data.each do |row|
+      self.records.create(
+        start_time: row['start'],
+        end_time: row['end'],
+        what: row['what'],
+        category: row['category']
+      )
+    end
   end
 
   private
@@ -45,13 +60,15 @@ class Page < ApplicationRecord
       「0830起床。朝食。40分絵を描く。 1014ぐずる」のように、途中のタスクの長さだけが明記されている場合は、「08:30,09:34,起床  09:34,10:14,絵を描く」のように、順番に応じて時刻を設定してください。
       日付がわからない場合は, #{today}としてください。基本的には出来事は時系列順で記述されています。最後のほうの出来事は日付が変わった後で、#{today}の次の日の早朝の出来事かもしれません。
 
-      たとえば、「20:23から上野でタブナイ観る。0:05帰宅。シャワー浴びた。0:25就寝。」という記述は
-        2025-03-20 20:23,2025-03-21 0:05,タブナイ観る,娯楽
-        2025-03-21 0:05,2025-03-21 0:25,シャワー浴びた,生活
-        2025-03-21 0:25,_,就寝,睡眠
+      たとえば、「20:23から上野でタブナイ観る。22:30映画館出る。0:05帰宅。0:30までシャワー浴びた。0:55就寝。」という記述は
+        2025-03-20 20:23,2025-03-21 22:30,タブナイ観る,娯楽
+        2025-03-20 22:30,2025-03-21 0:05,移動,移動
+        2025-03-21 0:05,2025-03-21 0:30,シャワー浴びた,生活
+        2025-03-21 0:30,2025-03-21 0:55,_,_
+        2025-03-21 0:55,_,就寝,睡眠
       のように出力してください。
 
-      応答には上記CSV以外の情報は含まないようにしてください。コードをくくる ``` も含めないようにしてください。
+      応答には上記CSV（ヘッダと中身）以外の情報は含まないようにしてください。コードをくくる ``` も含めないようにしてください。
       PROMPT
     end
 end

@@ -96,12 +96,61 @@
   <% end %>
 
   <div id="analyzed">
-    <h2>Analysis</h2>
     <% if page.persisted? %>
       <%= form_with url: analyze_date_page_path(page.date.strftime("%Y%m%d")), method: :post do %>
         <%= submit_tag 'analyze' %>
       <% end %>
     <% end %>
-    <pre><%= page.analyzed_content %></pre>
+
+    <div>
+      <h2>Records</h2>
+      <% if page.records.any? %>
+        <table>
+          <thead>
+            <tr>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Duration</th>
+              <th>What</th>
+              <th>Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% page.records.each do |record| %>
+              <% end_or_now = if record.end_time.present?
+                              record.end_time
+                            elsif Date.today == record.page.date
+                              Time.current
+                            else
+                              nil
+                            end
+               %>
+              <% duration_min = if record.start_time && end_or_now
+                              ((end_or_now - record.start_time) / 60).to_i
+                            else
+                              nil
+                            end %>
+              <tr class="record" style="height: <%= [1, 1 + (duration_min || 0 - 20) / 20.0].max %>rem">
+                <td><%= record.start_time&.strftime("%H:%M") %></td>
+                <td><%= record.end_time&.strftime("%H:%M") %></td>
+                <td>
+                  <% if duration_min %>
+                    <%= "#{duration_min} min" %>
+                  <% else %>
+                    ?
+                  <% end %>
+                </td>
+                <td><%= record.what %></td>
+                <td><%= record.category %></td>
+              </tr>
+            <% end %>
+          </tbody>
+      <% end %>
+    </div>
+
+    <details>
+      <summary>Debug Info</summary>
+      <pre><%= page.analyzed_content %></pre>
+    </details>
   </div>
 </div>
