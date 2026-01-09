@@ -1,5 +1,61 @@
+<style>
+  .week-section {
+    margin-bottom: 3rem;
+  }
+  
+  .week-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #333;
+    padding-bottom: 0.5rem;
+  }
+  
+  .day-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+  }
+  
+  .day-header {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+  }
+  
+  .category_durations {
+    padding: 0;
+  }
+
+  .category_durations span {
+    margin-bottom: 0.2rem;
+    font-size: 1.5rem;
+  }
+
+  .legend-color {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 3px;
+  }
+  
+  .avg-category {
+    display: inline-block;
+    margin-right: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+  }
+</style>
 
 <h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
+
+<%= form_with url: analyze_week_path, method: :post do %>
+  <%= hidden_field_tag :start_date, @startdate %>
+  <%= hidden_field_tag :end_date, @enddate %>
+  <%= submit_tag '今週をまとめて分析' %>
+<% end %>
+
 
 <% @pages_thisweek.each do |page| %>
   <div>
@@ -19,22 +75,68 @@
 
 <hr>
 
-<h2>Analysis</h2>
-
-<% @pages_thisweek.each do |page| %>
-  <% if page.analyzed_content %>
+<div class="week-section">
+  <h2 class="week-title">今週 (<%= @startdate.strftime("%Y/%m/%d") %> - <%= @enddate.strftime("%Y/%m/%d") %>)</h2>
+  
+  <% if @thisweek_avg.any? %>
+    <div class="week-summary">
+      average
       <div>
-        <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
-        <%= page.analyzed_content.gsub("\n", "<br>").html_safe %>
+        <% @thisweek_avg.each do |category, avg_minutes| %>
+          <span class="avg-category">
+            <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
+            <%= category %>: <strong><%= "#{(avg_minutes/60).to_i}h#{(avg_minutes%60).to_i}m" %></strong>
+          </span>
+        <% end %>
       </div>
+    </div>
   <% end %>
-<% end %>
+  
+  <% @pages_thisweek.each do |page| %>
+    <div class="day-section">
+      <div class="day-header">
+        <a href="<%= date_path(page.date.strftime("%Y%m%d")) %>">
+          <%= page.date.strftime("%Y/%m/%d %a") %>
+        </a>
+      </div>
+      <%= render partial: "records", locals: { page: page } %>
+    </div>
+  <% end %>
+  
+  <% if @pages_thisweek.empty? %>
+    <p>今週のデータがありません</p>
+  <% end %>
+</div>
 
-<% @pages_lastweek.each do |page| %>
-  <% if page.analyzed_content %>
+<div class="week-section">
+  <h2 class="week-title">先週 (<%= @lastweek_startdate.strftime("%Y/%m/%d") %> - <%= @lastweek_enddate.strftime("%Y/%m/%d") %>)</h2>
+  
+  <% if @lastweek_avg.any? %>
+    <div class="week-summary">
+      <h3>📊 カテゴリごとの一日平均時間</h3>
       <div>
-        <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
-        <%= page.analyzed_content.gsub("\n", "<br>").html_safe %>
+        <% @lastweek_avg.each do |category, avg_minutes| %>
+          <span class="avg-category">
+            <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
+            <%= category %>: <strong><%= "#{(avg_minutes/60).to_i}h#{(avg_minutes%60).to_i}m" %></strong>
+          </span>
+        <% end %>
       </div>
+    </div>
   <% end %>
-<% end %>
+  
+  <% @pages_lastweek.each do |page| %>
+    <div class="day-section">
+      <div class="day-header">
+        <a href="<%= date_path(page.date.strftime("%Y%m%d")) %>">
+          <%= page.date.strftime("%Y/%m/%d %a") %>
+        </a>
+      </div>
+      <%= render partial: "records", locals: { page: page } %>
+    </div>
+  <% end %>
+  
+  <% if @pages_lastweek.empty? %>
+    <p>先週のデータがありません</p>
+  <% end %>
+</div>

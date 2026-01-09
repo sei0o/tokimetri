@@ -26,6 +26,7 @@ Rails.application.routes.draw do
   get "/today", to: "pages#today", as: :today
   get "/try", to: "pages#try", as: :try
   get "/review", to: "pages#review", as: :review
+  post '/analyze_week', to: 'pages#analyze_week'
 
   get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings

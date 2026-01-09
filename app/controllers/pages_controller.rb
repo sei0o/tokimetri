@@ -74,9 +74,28 @@ class PagesController < ApplicationController
     @lastweek_enddate = @enddate - 7.days
     @pages_lastweek = Page.where(date: @lastweek_startdate..@lastweek_enddate).order(:date)
 
+    @categories = Setting.instance.categories
+
+    @thisweek_avg = Page.calculate_category_averages(@pages_thisweek)
+    @lastweek_avg = Page.calculate_category_averages(@pages_lastweek)
+
     render :review
   end
 
+  def analyze_week
+    start_date = Date.parse(params[:start_date])
+    end_date = Date.parse(params[:end_date])
+  
+    pages = Page.where(date: start_date..end_date)
+  
+    pages.each do |page|
+      page.analyze_and_update if page.content.present?
+    end
+  
+    redirect_to review_path, notice: "#{start_date.strftime('%Y/%m/%d')} - #{end_date.strftime('%Y/%m/%d')} を分析しました"
+  rescue Date::Error
+    redirect_to review_path, alert: "日付の解析に失敗しました"
+  end
 
   def destroy
     @page.destroy

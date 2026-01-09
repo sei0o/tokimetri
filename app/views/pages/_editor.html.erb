@@ -118,62 +118,6 @@
       <% end %>
     <% end %>
 
-    <div>
-      <h2>Records</h2>
-      <% if page.records.any? %>
-        <div class="category_durations">
-          <% page.category_durations_minutes.each do |category, duration| %>
-            <span>
-              <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
-              <%= category %>
-              <span class="category">
-                <%= "#{duration/60}h#{duration%60}m" %>
-              </span>
-            </span>
-          <% end %>
-        </div>
-
-        <table>
-          <thead>
-            <tr>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Duration</th>
-              <th>What</th>
-              <th>Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            <% page.records.each do |record| %>
-              <% end_or_now = if record.end_time.present?
-                              record.end_time
-                            elsif Date.today == record.page.date
-                              Time.current
-                            else
-                              nil
-                            end
-               %>
-              <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem">
-                <td><%= record.start_time&.strftime("%H:%M") %></td>
-                <td><%= record.end_time&.strftime("%H:%M") %></td>
-                <td>
-                  <% if record.duration_minutes %>
-                    <%= "#{record.duration_minutes} min" %>
-                  <% else %>
-                    ?
-                  <% end %>
-                </td>
-                <td><%= record.what %></td>
-                <td><%= record.category %></td>
-              </tr>
-            <% end %>
-          </tbody>
-      <% end %>
-    </div>
-
-    <details>
-      <summary>Debug Info</summary>
-      <pre><%= page.analyzed_content %></pre>
-    </details>
+    <%= render partial: "records", locals: { page: page } %>
   </div>
 </div>

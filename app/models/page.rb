@@ -45,6 +45,28 @@ class Page < ApplicationRecord
     summary.sort_by { |_, duration| -duration }
   end
 
+  def self.calculate_category_averages(pages)
+    return {} if pages.empty?
+    
+    total_by_category = Hash.new(0)
+    
+    pages.each do |page|
+      page.category_durations_minutes.each do |category, duration|
+        total_by_category[category] += duration
+      end
+    end
+    
+    # 日数で割って平均を出す
+    days_count = pages.count
+    avg_by_category = {}
+    total_by_category.each do |category, total|
+      avg_by_category[category] = total / days_count.to_f
+    end
+    
+    # 時間が多い順にソート
+    avg_by_category.sort_by { |_, avg| -avg }.to_h
+  end
+
   private
     def prompt
       today = self.date.strftime('%Y/%m/%d')
