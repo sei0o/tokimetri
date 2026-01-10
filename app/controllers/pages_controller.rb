@@ -80,6 +80,12 @@ class PagesController < ApplicationController
     @thisweek_avg = Page.calculate_category_averages(@pages_thisweek)
     @lastweek_avg = Page.calculate_category_averages(@pages_lastweek)
 
+    @thisweek_wake_avg = Page.average_wake_time(@pages_thisweek)
+    @lastweek_wake_avg = Page.average_wake_time(@pages_lastweek)
+
+    @thisweek_total = Page.calculate_category_total(@pages_thisweek)
+    @lastweek_total = Page.calculate_category_total(@pages_lastweek)
+
     render :review
   end
 

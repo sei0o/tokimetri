@@ -5,6 +5,30 @@ class Page < ApplicationRecord
 
   has_many :records, dependent: :destroy
 
+  def wake_time
+    if last = records.where(category: '睡眠').order(:end_time).last
+      return last.end_time
+    end
+
+    if yesterday_page = Page.find_by(date: date - 1.day)
+      if yesterday_last = yesterday_page.records.where(category: '睡眠').order(:end_time).last
+        return yesterday_last.end_time
+      end
+    end
+
+    records.first&.start_time
+  end
+
+  def self.average_wake_time(pages)
+    wake_times = pages.map(&:wake_time).compact
+    return nil if wake_times.empty?
+  
+    total_minutes = wake_times.sum { |t| t.hour * 60 + t.min }
+    avg_minutes = total_minutes / wake_times.size
+  
+    Time.parse("#{avg_minutes / 60}:#{avg_minutes % 60}")
+  end
+
   def analyze_and_update
     # show rails env
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
@@ -63,7 +87,7 @@ class Page < ApplicationRecord
     summary.sort_by { |_, duration| -duration }
   end
 
-  def self.calculate_category_averages(pages)
+  def self.calculate_category_total(pages)
     return {} if pages.empty?
     
     total_by_category = Hash.new(0)
@@ -74,15 +98,14 @@ class Page < ApplicationRecord
       end
     end
     
-    # 日数で割って平均を出す
-    days_count = pages.count
-    avg_by_category = {}
-    total_by_category.each do |category, total|
-      avg_by_category[category] = total / days_count.to_f
-    end
-    
     # 時間が多い順にソート
-    avg_by_category.sort_by { |_, avg| -avg }.to_h
+    total_by_category.sort_by { |_, total| -total }.to_h
+  end
+
+  def self.calculate_category_averages(pages)
+    self.calculate_category_total(pages).transform_values do |total_minutes|
+      (total_minutes.to_f / pages.size).round(2)
+    end
   end
 
   private
@@ -118,6 +141,16 @@ class Page < ApplicationRecord
         2025-03-21 0:05,2025-03-21 0:30,シャワー浴びた,生活
         2025-03-21 0:30,2025-03-21 0:55,_,_
         2025-03-21 0:55,_,就寝,睡眠
+      のように出力してください。
+
+
+      たとえば、
+      「23:27までtokimetri開発. 週次レビュー用の機能作る。Claude、速い。
+      0:30までtokimetri開発。楽しいが若干ダレてくる。
+      01:10までネットサーフィン。scp読む。」
+      という記述は、
+        2025-11-20 23:27,2025-11-21 0:30,tokimetri開発,趣味
+        2025-11-21 0:30,2025-11-21 1:10,ネットサーフィン,趣味
       のように出力してください。
 
       応答には上記CSV（ヘッダと中身）以外の情報は含まないようにしてください。コードをくくる ``` も含めないようにしてください。

@@ -1,6 +1,12 @@
+<style>
+  .wst8 {
+    color: gray;
+  }
+</style>
+
 <div>
   <% if page.records.any? %>
-    <% wake_time = page.records.first.start_time %>
+    <% wake_time = page.wake_time %>
     <% wake_offset_minutes = wake_time ? (wake_time.hour * 60 + wake_time.min - 8 * 60) : 0 %>
     
     <div class="category_durations">
@@ -39,9 +45,11 @@
           <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem">
             <td><%= record.start_time&.strftime("%H:%M") %></td>
             <td><%= record.end_time&.strftime("%H:%M") %></td>
-            <td>
+            <td class="wst8">
               <% if record.start_time %>
-                <% wst8_minutes = record.start_time.hour * 60 + record.start_time.min - wake_offset_minutes %>
+                <%
+                  wst8_minutes = (record.start_time.hour * 60 + record.start_time.min - wake_offset_minutes + 24 * 60) % (24 * 60)
+                %>
                 <%= minutes_to_hm(wst8_minutes) %>
               <% else %>
                 ?

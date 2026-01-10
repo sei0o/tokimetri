@@ -80,12 +80,24 @@
   
   <% if @thisweek_avg.any? %>
     <div class="week-summary">
-      average
+      平均起床時間：<strong><%= @thisweek_wake_avg.strftime("%H:%M") %></strong><br>
+
+      カテゴリ別平均時間：<br>
       <div>
         <% @thisweek_avg.each do |category, avg_minutes| %>
           <span class="avg-category">
             <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
             <%= category %>: <strong><%= "#{(avg_minutes/60).to_i}h#{(avg_minutes%60).to_i}m" %></strong>
+          </span>
+        <% end %>
+      </div>
+
+      カテゴリ別合計時間：<br>
+      <div>
+        <% @thisweek_total.each do |category, total_minutes| %>
+          <span class="avg-category">
+            <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
+            <%= category %>: <strong><%= "#{(total_minutes/60).to_i}h#{(total_minutes%60).to_i}m" %></strong>
           </span>
         <% end %>
       </div>
