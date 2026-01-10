@@ -48,6 +48,10 @@
   }
 </style>
 
+<%= form_with url: analyze_all_path, method: :post do %>
+  <%= submit_tag '未分析ページを全て分析' %>
+<% end %>
+
 <h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
 
 <%= form_with url: analyze_week_path, method: :post do %>

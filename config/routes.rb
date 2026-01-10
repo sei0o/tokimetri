@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   get "/try", to: "pages#try", as: :try
   get "/review", to: "pages#review", as: :review
   post '/analyze_week', to: 'pages#analyze_week'
+  post '/analyze_all', to: 'pages#analyze_all', as: :analyze_all
 
   get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings

@@ -63,6 +63,17 @@ class PagesController < ApplicationController
     end
   end
 
+  def analyze_all
+    pages = Page.where(analyzed_content: [nil, '']).where.not(content: [nil, ''])
+    count = pages.count
+    
+    pages.each do |page|
+      page.analyze_and_update
+    end
+    
+    redirect_to review_path, notice: "#{count}件のページを分析しました"
+  end
+
   def review
     # 先週の記録を全部出す（月曜始まり）
 
