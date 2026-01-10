@@ -25,6 +25,7 @@ class Setting < ApplicationRecord
       '娯楽' => '#b16128',
       '生活' => '#46843e',
       '仕事' => '#357e9e',
+      '移動' => '#6e6e6e',
     }
   end
 
