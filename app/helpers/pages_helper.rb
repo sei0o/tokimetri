@@ -86,4 +86,30 @@ module PagesHelper
     mins = (minutes % 60).round
     sprintf("%d:%02d", hours, mins)
   end
+
+  def hex_to_pastel(hex)
+    return "#fff" if hex.nil?
+    
+    hex = hex.gsub('#', '')
+    
+    if hex.length == 3
+      r = hex[0].to_i(16) * 17
+      g = hex[1].to_i(16) * 17
+      b = hex[2].to_i(16) * 17
+    elsif hex.length == 6
+      r = hex[0..1].to_i(16)
+      g = hex[2..3].to_i(16)
+      b = hex[4..5].to_i(16)
+    else
+      return "#fff"
+    end
+    
+    # パステルカラーにする（元の色と白を7:3で混ぜる）
+    lightness = 0.7
+    r = (r + (255 - r) * lightness).round
+    g = (g + (255 - g) * lightness).round
+    b = (b + (255 - b) * lightness).round
+    
+    "#%02x%02x%02x" % [r, g, b]
+  end
 end

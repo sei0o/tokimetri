@@ -2,6 +2,14 @@
   .wst8 {
     color: gray;
   }
+
+  .record {
+    vertical-align: top;
+  }
+
+  .record td {
+    padding: 5px;
+  }
 </style>
 
 <div>
@@ -42,7 +50,7 @@
                           nil
                         end
            %>
-          <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem">
+          <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(@categories[record.category]) %>;">
             <td><%= record.start_time&.strftime("%H:%M") %></td>
             <td><%= record.end_time&.strftime("%H:%M") %></td>
             <td class="wst8">
