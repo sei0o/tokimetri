@@ -34,7 +34,7 @@ class Page < ApplicationRecord
     client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
     response = client.responses.create(
       parameters: {
-        model: 'gpt-4o',
+        model: 'gpt-5',
         input: prompt,
       }
     )
@@ -132,6 +132,7 @@ class Page < ApplicationRecord
       - 「日記アプリの開発」は趣味カテゴリです。
       - 研究室での「雑談」はだらだらカテゴリです。
       - 睡眠は睡眠カテゴリです。睡眠以外のタスクは睡眠カテゴリに分類しないでください。
+      - 仕事や就活は判断が難しいです。2時間ぐらい続いているとただのネットサーフィンになりがちなので、だらだらカテゴリに移動してください。エントリーシートやSPIは事務カテゴリに分類してください。
       
       「0830起床。朝食。40分絵を描く。 1014ぐずる」のように、途中のタスクの長さだけが明記されている場合は、「08:30,09:34,起床  09:34,10:14,絵を描く」のように、順番に応じて時刻を設定してください。
       日付がわからない場合は, #{today}としてください。基本的には出来事は時系列順で記述されています。最後のほうの出来事は日付が変わった後で、#{today}の次の日の早朝の出来事かもしれません。
