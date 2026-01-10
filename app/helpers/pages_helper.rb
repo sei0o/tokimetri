@@ -80,4 +80,10 @@ module PagesHelper
       title: "#{line[2]} (#{line[0]} - #{line[1]})"
     }
   end
+
+  def minutes_to_hm minutes
+    hours = (minutes / 60).floor
+    mins = (minutes % 60).round
+    sprintf("%d:%02d", hours, mins)
+  end
 end

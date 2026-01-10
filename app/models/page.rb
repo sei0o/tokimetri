@@ -31,6 +31,24 @@ class Page < ApplicationRecord
         category: row['category']
       )
     end
+
+    merge_sleep_records
+  end
+
+  def merge_sleep_records
+    # 前日の最後の睡眠レコード（就寝）を探す
+    yesterday_page = Page.find_by(date: date - 1.day)
+    return true unless yesterday_page
+
+    yesterday_sleep = yesterday_page.records.order(:start_time).last
+    return true unless yesterday_sleep && yesterday_sleep.category == '睡眠'
+  
+    if yesterday_sleep.end_time.nil? 
+      today_earliest = records.order(:start_time).first
+      yesterday_sleep.update(end_time: today_earliest.start_time)    
+    else
+      true
+    end
   end
 
   def category_durations_minutes

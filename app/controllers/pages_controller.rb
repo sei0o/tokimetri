@@ -54,6 +54,7 @@ class PagesController < ApplicationController
   end
 
   def analyze
+    @categories = Setting.instance.categories
     if @page.analyze_and_update
       redirect_to date_path(@date.strftime("%Y%m%d"))
     else
