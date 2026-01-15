@@ -1,3 +1,14 @@
+class ActivityRecord < OpenAI::BaseModel
+  required :start, String, nil?: true
+  required :end, String, nil?: true
+  required :what, String, nil?: true
+  required :category, String, nil?: true
+end
+
+class ActivityRecords < OpenAI::BaseModel
+  required :records, OpenAI::ArrayOf[ActivityRecord]
+end
+
 class Page < ApplicationRecord
   # has_rich_text :content
   validates :date, presence: true
@@ -30,18 +41,32 @@ class Page < ApplicationRecord
   end
 
   def analyze_and_update
-    # show rails env
-    client = OpenAI::Client.new(access_token: Rails.application.credentials.openai.api_key)
-    response = client.responses.create(
-      parameters: {
-        model: "gpt-5",
-        input: prompt
-      }
+    client = OpenAI::Client.new(api_key: Rails.application.credentials.openai.api_key)
+
+    chat_completion = client.chat.completions.create(
+      model: "gpt-5.2",
+      messages: [
+        { role: :user, content: prompt }
+      ],
+      response_format: ActivityRecords
     )
 
-    pp response
+    pp chat_completion
 
-    self.update(analyzed_content: response.dig("output", 0, "content", 0, "text"))
+    parsed = chat_completion.choices.first.message.parsed
+
+    # CSV に変換
+    csv_string = "start,end,what,category\n"
+    parsed.records.each do |record|
+      csv_string += [
+        record.start || "_",
+        record.end || "_",
+        record.what || "_",
+        record.category || "_"
+      ].join(",") + "\n"
+    end
+
+    self.update(analyzed_content: csv_string)
 
     # add records
     self.records.destroy_all
@@ -116,16 +141,17 @@ class Page < ApplicationRecord
       <<-PROMPT
       #{self.content}
 
-      上記の内容を
+      上記の内容を、以下のような JSON 形式でまとめてください:
 
-      start,end,what,category
-      2025-03-20 14:30,2025-03-20 15:45,航空券とかESTAとか申請する,事務
-      ...
-      2025-03-20 22:34,2025-03-20 23:00,moyaru書く,趣味
-      2025-03-20 23:00,2025-03-21 5:00,睡眠,睡眠
-      ...
+      {
+        "records": [
+          {"start": "2025-03-20 14:30", "end": "2025-03-20 15:45", "what": "航空券とかESTAとか申請する", "category": "事務"},
+          {"start": "2025-03-20 22:34", "end": "2025-03-20 23:00", "what": "moyaru書く", "category": "趣味"},
+          {"start": "2025-03-20 23:00", "end": "2025-03-21 05:00", "what": "睡眠", "category": "睡眠"}
+        ]
+      }
 
-      のように何をしていたかわかるようにCSVでまとめてください。start,endカラムはyyyy-MM-dd HH:mmの形式とします。わからない部分は_で埋めてください。何をしていたか読み取れない時間帯も,_で埋めてください。categoryについては、what列の情報をもとに、#{cat}のうち、一番近いもので埋めてください。
+      start と end は yyyy-MM-dd HH:mm の形式とします。わからない部分は null にしてください。何をしていたか読み取れない時間帯も null で埋めてください。category については、what の情報をもとに、#{cat}のうち、一番近いもので埋めてください。
 
       また、
       - 「Tier4」は仕事のことです。
@@ -134,17 +160,17 @@ class Page < ApplicationRecord
       - 睡眠は睡眠カテゴリです。睡眠以外のタスクは睡眠カテゴリに分類しないでください。
       - 仕事や就活は判断が難しいです。2時間ぐらい続いているとただのネットサーフィンになりがちなので、だらだらカテゴリに移動してください。エントリーシートやSPIは事務カテゴリに分類してください。
 
-      「0830起床。朝食。40分絵を描く。 1014ぐずる」のように、途中のタスクの長さだけが明記されている場合は、「08:30,09:34,起床  09:34,10:14,絵を描く」のように、順番に応じて時刻を設定してください。
-      日付がわからない場合は, #{today}としてください。基本的には出来事は時系列順で記述されています。最後のほうの出来事は日付が変わった後で、#{today}の次の日の早朝の出来事かもしれません。
+      「0830起床。朝食。40分絵を描く。 1014ぐずる」のように、途中のタスクの長さだけが明記されている場合は、順番に応じて時刻を設定してください（例: start: "08:30", end: "09:34" など）。
+      日付がわからない場合は #{today} としてください。基本的には出来事は時系列順で記述されています。最後のほうの出来事は日付が変わった後で、#{today}の次の日の早朝の出来事かもしれません。
 
       「〇〇。半分ぐらいネット見てた」などの場合は、「〇〇」と「ネット見てた（だらだら）」の間の時間を均等に分割して記録してください。
 
       たとえば、「20:23から上野でタブナイ観る。22:30映画館出る。0:05帰宅。0:30までシャワー浴びた。0:55就寝。」という記述は
-        2025-03-20 20:23,2025-03-21 22:30,タブナイ観る,娯楽
-        2025-03-20 22:30,2025-03-21 0:05,移動,移動
-        2025-03-21 0:05,2025-03-21 0:30,シャワー浴びた,生活
-        2025-03-21 0:30,2025-03-21 0:55,_,_
-        2025-03-21 0:55,_,就寝,睡眠
+        {"start": "2025-03-20 20:23", "end": "2025-03-20 22:30", "what": "タブナイ観る", "category": "娯楽"},
+        {"start": "2025-03-20 22:30", "end": "2025-03-21 00:05", "what": "移動", "category": "移動"},
+        {"start": "2025-03-21 00:05", "end": "2025-03-21 00:30", "what": "シャワー浴びた", "category": "生活"},
+        {"start": "2025-03-21 00:30", "end": "2025-03-21 00:55", "what": null, "category": null},
+        {"start": "2025-03-21 00:55", "end": null, "what": "就寝", "category": "睡眠"}
       のように出力してください。
 
       たとえば、
@@ -152,11 +178,9 @@ class Page < ApplicationRecord
       0:30までtokimetri開発。楽しいが若干ダレてくる。
       01:10までネットサーフィン。scp読む。」
       という記述は、
-        2025-11-20 23:27,2025-11-21 0:30,tokimetri開発,趣味
-        2025-11-21 0:30,2025-11-21 1:10,ネットサーフィン,趣味
+        {"start": "2025-11-20 23:27", "end": "2025-11-21 00:30", "what": "tokimetri開発", "category": "趣味"},
+        {"start": "2025-11-21 00:30", "end": "2025-11-21 01:10", "what": "ネットサーフィン", "category": "趣味"}
       のように出力してください。
-
-      応答には上記CSV（ヘッダと中身）以外の情報は含まないようにしてください。コードをくくる ``` も含めないようにしてください。
       PROMPT
     end
 end
