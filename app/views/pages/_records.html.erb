@@ -33,7 +33,6 @@
       <thead>
         <tr>
           <th>Start Time</th>
-          <th>End Time</th>
           <th>WST8</th>
           <th>Duration</th>
           <th>What</th>
@@ -41,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        <% page.records.each do |record| %>
+        <% page.records.each_cons(2) do |record, next_record| %>
           <% end_or_now = if record.end_time.present?
                           record.end_time
                         elsif Date.today == record.page.date
@@ -52,7 +51,6 @@
            %>
           <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(@categories[record.category]) %>;">
             <td><%= record.start_time&.strftime("%H:%M") %></td>
-            <td><%= record.end_time&.strftime("%H:%M") %></td>
             <td class="wst8">
               <% if record.start_time %>
                 <%
