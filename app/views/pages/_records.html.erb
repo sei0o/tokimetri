@@ -10,9 +10,26 @@
   .record td {
     padding: 5px;
   }
+
+  .record {
+    cursor: pointer;
+  }
+
+  .record.selected {
+    filter: brightness(0.8);
+  }
+
+  .selection-summary {
+    display: none;
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    font-size: 14px;
+  }
 </style>
 
-<div>
+<div data-controller="record-selection">
   <% if page.records.any? %>
     <% wake_time = page.wake_time %>
     <% wake_offset_minutes = wake_time ? (wake_time.hour * 60 + wake_time.min - 8 * 60) : 0 %>
@@ -23,16 +40,22 @@
           <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
           <%= category %>
           <span class="category">
-            <%= "#{duration/60}h#{duration%60}m" %>
+            <%= "#{duration/60}:#{(duration%60).to_s.rjust(2, '0')}" %>
           </span>
         </span>
       <% end %>
     </div>
 
+    <div class="selection-summary" data-record-selection-target="summary">
+      選択: <strong data-record-selection-target="total">0:00</strong>
+      <button type="button" data-action="click->record-selection#reset">リセット</button>
+    </div>
+
     <table>
       <thead>
         <tr>
-          <th>Start Time</th>
+          <th><input type="checkbox" style="visibility: hidden;"></th>
+          <th>Start</th>
           <th>WST8</th>
           <th>Duration</th>
           <th>What</th>
@@ -49,7 +72,13 @@
                           nil
                         end
            %>
-          <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(@categories[record.category]) %>;">
+          <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(@categories[record.category]) %>;" data-action="click->record-selection#toggleRow">
+            <td>
+              <input type="checkbox" 
+                     data-record-selection-target="checkbox" 
+                     data-action="change->record-selection#toggle"
+                     data-duration="<%= record.duration_minutes || 0 %>">
+            </td>
             <td><%= record.start_time&.strftime("%H:%M") %></td>
             <td class="wst8">
               <% if record.start_time %>
