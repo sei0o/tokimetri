@@ -1,0 +1,52 @@
+<style>
+  .day-separator {
+    padding-top: 1rem;
+  }
+</style>
+
+<%= form_with url: search_path, method: :get, local: true do |f| %>
+  <%= f.text_field :q, value: params[:q], placeholder: "検索ワードを入力" %>
+  <%= f.submit "検索" %>
+<% end %>
+
+<% if params[:q].present? %>
+  <% if @stats %>
+    <div style="background-color: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px;">
+      <strong>統計情報</strong><br>
+      回数: <%= @stats[:count] %>回 | 
+      平均: <%= minutes_to_hm(@stats[:avg]) %> | 
+      中央値: <%= minutes_to_hm(@stats[:median]) %> | 
+      標準偏差: <%= minutes_to_hm(@stats[:std_dev]) %><br>
+      範囲: <%= minutes_to_hm(@stats[:min]) %> - <%= minutes_to_hm(@stats[:max]) %>
+    </div>
+  <% end %>
+  
+  <% if @records.any? %>
+    <table>
+      <thead>
+        <tr>
+          <th><input type="checkbox" style="visibility: hidden;"></th>
+          <th>Start</th>
+          <th>WST8</th>
+          <th>Duration</th>
+          <th>What</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% last_date = nil %>
+        <% @records.each do |record| %>
+          <% if record.page.date != last_date %>
+            <% last_date = record.page.date %>
+            <tr>
+              <td colspan="7" class="day-separator">
+                <%= link_to record.page.date.strftime("%Y-%m-%d"), date_path(record.page.date.strftime("%Y%m%d")) %>
+              </td>
+            </tr>
+          <% end %>
+          <%= render partial: "record_row", locals: { record: record, categories: @categories } %>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+<% end %>

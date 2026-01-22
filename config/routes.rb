@@ -19,15 +19,16 @@ Rails.application.routes.draw do
   post "/day/:date/analyze", to: "pages#analyze", as: :analyze_date_page
 
   # その他のルート
-  resources :pages, only: [:index]
-  resources :settings, only: [:edit, :update]
+  resources :pages, only: [ :index ]
+  resources :settings, only: [ :edit, :update ]
+  get "/search", to: "pages#search", as: :search
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
   get "/today", to: "pages#today", as: :today
   get "/try", to: "pages#try", as: :try
   get "/review", to: "pages#review", as: :review
-  post '/analyze_week', to: 'pages#analyze_week'
-  post '/analyze_all', to: 'pages#analyze_all', as: :analyze_all
+  post "/analyze_week", to: "pages#analyze_week"
+  post "/analyze_all", to: "pages#analyze_all", as: :analyze_all
 
   get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings

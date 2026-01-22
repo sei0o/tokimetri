@@ -1,20 +1,4 @@
 <style>
-  .wst8 {
-    color: gray;
-  }
-
-  .record {
-    vertical-align: top;
-  }
-
-  .record td {
-    padding: 5px;
-  }
-
-  .record {
-    cursor: pointer;
-  }
-
   .record.selected {
     filter: brightness(0.8);
   }
@@ -63,43 +47,8 @@
         </tr>
       </thead>
       <tbody>
-        <% page.records.each_cons(2) do |record, next_record| %>
-          <% end_or_now = if record.end_time.present?
-                          record.end_time
-                        elsif Date.today == record.page.date
-                          Time.current
-                        else
-                          nil
-                        end
-           %>
-          <tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(@categories[record.category]) %>;" data-action="click->record-selection#toggleRow">
-            <td>
-              <input type="checkbox" 
-                     data-record-selection-target="checkbox" 
-                     data-action="change->record-selection#toggle"
-                     data-duration="<%= record.duration_minutes || 0 %>">
-            </td>
-            <td><%= record.start_time&.strftime("%H:%M") %></td>
-            <td class="wst8">
-              <% if record.start_time %>
-                <%
-                  wst8_minutes = (record.start_time.hour * 60 + record.start_time.min - wake_offset_minutes + 24 * 60) % (24 * 60)
-                %>
-                <%= minutes_to_hm(wst8_minutes) %>
-              <% else %>
-                ?
-              <% end %>
-            </td>
-            <td>
-              <% if record.duration_minutes %>
-                <%= minutes_to_hm(record.duration_minutes) %>
-              <% else %>
-                ?
-              <% end %>
-            </td>
-            <td><%= record.what %></td>
-            <td><%= record.category %></td>
-          </tr>
+        <% page.records.each do |record| %>
+          <%= render partial: "record_row", locals: { record: record, categories: @categories } %>
         <% end %>
       </tbody>
     </table>
