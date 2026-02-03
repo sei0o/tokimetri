@@ -55,29 +55,18 @@ class Page < ApplicationRecord
 
     parsed = chat_completion.choices.first.message.parsed
 
-    # CSV に変換
-    csv_string = "start,end,what,category\n"
-    parsed.records.each do |record|
-      csv_string += [
-        record.start || "_",
-        record.end || "_",
-        record.what || "_",
-        record.category || "_"
-      ].join(",") + "\n"
-    end
-
-    self.update(analyzed_content: csv_string)
+    # JSON として保存
+    self.update(analyzed_content: { records: parsed.records }.to_json)
 
     # add records
     self.records.destroy_all
 
-    csv_data = CSV.parse(self.analyzed_content, headers: true)
-    csv_data.each do |row|
+    parsed.records.each do |record|
       self.records.create(
-        start_time: row["start"],
-        end_time: row["end"],
-        what: row["what"],
-        category: row["category"]
+        start_time: record.start,
+        end_time: record.end,
+        what: record.what,
+        category: record.category
       )
     end
 
@@ -157,6 +146,7 @@ class Page < ApplicationRecord
       - 「Tier4」は仕事のことです。
       - 「日記アプリの開発」は趣味カテゴリです。
       - 研究室での「雑談」はだらだらカテゴリです。
+      - 留学報告書は事務カテゴリです。
       - 睡眠は睡眠カテゴリです。睡眠以外のタスクは睡眠カテゴリに分類しないでください。
       - 仕事や就活は判断が難しいです。2時間ぐらい続いているとただのネットサーフィンになりがちなので、だらだらカテゴリに移動してください。エントリーシートやSPIは事務カテゴリに分類してください。
 
@@ -165,22 +155,46 @@ class Page < ApplicationRecord
 
       「〇〇。半分ぐらいネット見てた」などの場合は、「〇〇」と「ネット見てた（だらだら）」の間の時間を均等に分割して記録してください。
 
+      途中に記録に関係ないメモや、文章や、予定の記述が入っている場合がありますが、無視してください。
+
       たとえば、「20:23から上野でタブナイ観る。22:30映画館出る。0:05帰宅。0:30までシャワー浴びた。0:55就寝。」という記述は
         {"start": "2025-03-20 20:23", "end": "2025-03-20 22:30", "what": "タブナイ観る", "category": "娯楽"},
         {"start": "2025-03-20 22:30", "end": "2025-03-21 00:05", "what": "移動", "category": "移動"},
         {"start": "2025-03-21 00:05", "end": "2025-03-21 00:30", "what": "シャワー浴びた", "category": "生活"},
         {"start": "2025-03-21 00:30", "end": "2025-03-21 00:55", "what": null, "category": null},
         {"start": "2025-03-21 00:55", "end": null, "what": "就寝", "category": "睡眠"}
-      のように出力してください。
+      のように出力してください。「から」と「まで」に気をつけてください。
 
       たとえば、
-      「23:27までtokimetri開発. 週次レビュー用の機能作る。Claude、速い。
+      「23:27までシャワー。
       0:30までtokimetri開発。楽しいが若干ダレてくる。
       01:10までネットサーフィン。scp読む。」
       という記述は、
+        {"start": "（適切に設定）", "end": "2025-11-20 00:30", "what": "シャワー", "category": "生活"},
         {"start": "2025-11-20 23:27", "end": "2025-11-21 00:30", "what": "tokimetri開発", "category": "趣味"},
         {"start": "2025-11-21 00:30", "end": "2025-11-21 01:10", "what": "ネットサーフィン", "category": "趣味"}
       のように出力してください。
+
+      たとえば、
+      「08:30目を覚ます。09:00まで布団でうじうじする。よく寝た気がしたがうじうじするのは変わらない。09:25までメッセージ３つ返す。」は、
+      {"start": "2025-12-01 08:30", "end": "2025-12-01 09:00", "what": "布団でうじうじ", "category": "だらだら"},
+      {"start": "2025-12-01 09:00", "end": "2025-12-01 09:25", "what": "メッセージ３つ返す", "category": "事務"}
+      のように出力してください。
+
+      たとえば、
+      「15:45までネットサーフィン。
+        16:06まで留学書類書く。
+
+        16:30になったらカニでも食べに行きたい。24時までには寝たいなあ。
+        買い物リスト：醤油、ビール（Migrosにはないんだよな）、牛乳。全部液体やんけ
+
+        17:32まで湖を散歩して、帰りに別にしなくていい買い物をする。空も山々の影も湖も砂の影も全部が青い。波のないところはあるところよりも白い。夕方もきれい。
+      」は、
+      {"start": "（適当な時刻）", "end": "2025-12-15 15:45", "what": "ネットサーフィン", "category": "趣味"},
+      {"start": "2025-12-15 15:45", "end": "2025-12-15 16:06", "what": "留学書類書く", "category": "事務"},
+      {"start": "2025-12-15 16:06", "end": "2025-12-15 17:32", "what": "湖を散歩する・買い物をする", "category": "生活"}
+      のように出力してください。
+
       PROMPT
     end
 end

@@ -177,7 +177,7 @@
   </div>
 <% end %>
 
-<div class="calendar-container" data-controller="calendar" data-calendar-pages-value='<%= @pages.map { |pg| CSV.parse(pg.analyzed_content) }.to_json.html_safe %>' style="height: 600px">
+<div class="calendar-container" data-controller="calendar" data-calendar-pages-value='<%= @pages.map { |pg| JSON.parse(pg.analyzed_content)["records"] }.to_json.html_safe %>' style="height: 600px">
 
   <div class="calendar-legend">
     <% @categories.each do |name, color| %>
@@ -213,8 +213,8 @@
     <% @pages.each do |pg| %>
       <h2><%= pg.date %></h2>
       <% if pg.analyzed_content.present? %>
-        <% CSV.parse(pg.analyzed_content).each do |l| %>
-          <p><%= l.join(", ") %></p>
+        <% JSON.parse(pg.analyzed_content)["records"].each do |record| %>
+          <p><%= [record["start"], record["end"], record["what"], record["category"]].join(", ") %></p>
         <% end %>
       <% else %>
         <p>分析データがありません</p>

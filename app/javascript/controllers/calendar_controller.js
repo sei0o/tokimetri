@@ -97,13 +97,15 @@ export default class extends Controller {
     const data = this.pagesValue || JSON.parse(this.element.dataset.pages)
 
     for (let page of data) {
-      for (let line of page) {
-        const [startTime, endTime, activity, category] = line
+      for (let record of page) {
+        const startTime = record.start
+        const endTime = record.end
+        const activity = record.what
+        const category = record.category
       
         // Skip entries with missing end time
-        if (endTime === "_") continue
-        if (startTime === "_") continue
-        if (startTime === 'start') continue
+        if (!endTime) continue
+        if (!startTime) continue
       
         // Parse date and times for YYYY-MM-DD HH:MM format w/ regex
         const st = startTime.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)

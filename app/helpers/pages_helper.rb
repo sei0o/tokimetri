@@ -1,5 +1,5 @@
 module PagesHelper
-  def activities_by_date pages
+  def activities_by_date(pages)
     ret = {}
     pages.each do |page|
       ret.merge!(activities_by_date_for_page(page)) do |date, old_val, new_val|
@@ -12,45 +12,46 @@ module PagesHelper
 
   def activities_by_date_for_page(page)
     return {} unless page.analyzed_content.present?
-    
+
     ret = {}
-    
-    CSV.parse(page.analyzed_content).each do |line|
-      next if line[0] == 'start' || line[0] == '_' || line[1] == '_'
-      
-      start_match = line[0].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
-      end_match = line[1].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+
+    data = JSON.parse(page.analyzed_content)
+    data["records"].each do |record|
+      next if record["start"].nil? || record["end"].nil?
+
+      start_match = record["start"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+      end_match = record["end"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
       next unless start_match && end_match
-      
+
       start_date = "#{start_match[1]}-#{start_match[2]}-#{start_match[3]}"
       end_date = "#{end_match[1]}-#{end_match[2]}-#{end_match[3]}"
-      
+
       # Add to start date's activities
       ret[start_date] ||= []
-      ret[start_date] << line
-      
+      ret[start_date] << record
+
       # If overnight, also add to end date's activities
       if start_date != end_date
         ret[end_date] ||= []
-        ret[end_date] << line
+        ret[end_date] << record
       end
     end
-    
+
     ret
   end
-  
-  def calculate_hday_slot_position(line, date)
-    start_match = line[0].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
-    end_match = line[1].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
-    
+
+  def calculate_hday_slot_position(record, date)
+    start_match = record["start"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+    end_match = record["end"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+
     start_date = "#{start_match[1]}-#{start_match[2]}-#{start_match[3]}"
     end_date = "#{end_match[1]}-#{end_match[2]}-#{end_match[3]}"
-    
+
     start_hour = start_match[4].to_i
     start_min = start_match[5].to_i
     end_hour = end_match[4].to_i
     end_min = end_match[5].to_i
-    
+
     # Calculate position and width based on current date
     if start_date == date && end_date == date
       # Activity entirely within this date
@@ -72,16 +73,16 @@ module PagesHelper
       # This shouldn't happen with our grouping, but just in case
       return nil
     end
-    
+
     {
       left_pos: left_pos,
       width: width,
-      category: line[3].strip,
-      title: "#{line[2]} (#{line[0]} - #{line[1]})"
+      category: record["category"],
+      title: "#{record["what"]} (#{record["start"]} - #{record["end"]})"
     }
   end
 
-  def minutes_to_hm minutes
+  def minutes_to_hm(minutes)
     hours = (minutes / 60).floor
     mins = (minutes % 60).round
     sprintf("%d:%02d", hours, mins)
@@ -89,9 +90,9 @@ module PagesHelper
 
   def hex_to_pastel(hex)
     return "#fff" if hex.nil?
-    
-    hex = hex.gsub('#', '')
-    
+
+    hex = hex.gsub("#", "")
+
     if hex.length == 3
       r = hex[0].to_i(16) * 17
       g = hex[1].to_i(16) * 17
@@ -103,13 +104,13 @@ module PagesHelper
     else
       return "#fff"
     end
-    
+
     # パステルカラーにする（元の色と白を7:3で混ぜる）
     lightness = 0.7
     r = (r + (255 - r) * lightness).round
     g = (g + (255 - g) * lightness).round
     b = (b + (255 - b) * lightness).round
-    
-    "#%02x%02x%02x" % [r, g, b]
+
+    "#%02x%02x%02x" % [ r, g, b ]
   end
 end
