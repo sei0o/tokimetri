@@ -108,25 +108,20 @@ class PagesController < ApplicationController
   def review
     # 先週の記録を全部出す（月曜始まり）
 
-    @startdate = Date.today.beginning_of_week
-    @enddate = @startdate.end_of_week
+    if params[:date].present?
+      @startdate = Date.parse(params[:date])
+    else
+      @startdate = Date.today.beginning_of_week
+    end
+    @enddate = @startdate + 6.days
 
     @pages_thisweek = Page.where(date: @startdate..@enddate).order(:date)
-
-    @lastweek_startdate = @startdate - 7.days
-    @lastweek_enddate = @enddate - 7.days
-    @pages_lastweek = Page.where(date: @lastweek_startdate..@lastweek_enddate).order(:date)
 
     @categories = Setting.instance.categories
 
     @thisweek_avg = Page.calculate_category_averages(@pages_thisweek)
-    @lastweek_avg = Page.calculate_category_averages(@pages_lastweek)
-
     @thisweek_wake_avg = Page.average_wake_time(@pages_thisweek)
-    @lastweek_wake_avg = Page.average_wake_time(@pages_lastweek)
-
     @thisweek_total = Page.calculate_category_total(@pages_thisweek)
-    @lastweek_total = Page.calculate_category_total(@pages_lastweek)
 
     render :review
   end

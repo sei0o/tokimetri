@@ -48,40 +48,61 @@
   }
 </style>
 
+<script>
+  function copyWeekContent() {
+    const pages = <%= raw @pages_thisweek.map { |p| { date: p.date.strftime("%Y/%m/%d %a"), content: p.content } }.to_json %>;
+    let text = '<%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %>\n\n';
+    
+    pages.forEach(page => {
+      text += `=== ${page.date} ===\n${page.content}\n\n`;
+    });
+
+    navigator.clipboard.writeText(text).then(() => {
+    }).catch(err => {
+      console.error('コピーに失敗しました:', err);
+    });
+  }
+</script>
+
 <%= form_with url: analyze_all_path, method: :post do %>
   <%= submit_tag '未分析ページを全て分析' %>
 <% end %>
+
+<div>
+  <%= form_with url: review_path, method: :get, style: "display: flex; align-items: center; gap: 1rem;" do |f| %>
+    <%= f.label :date, "週の開始日:" %>
+    <%= f.date_field :date, value: @startdate, style: "padding: 0.5rem; font-size: 1rem;" %>
+    <%= f.submit "表示", style: "padding: 0.5rem 1rem; cursor: pointer;" %>
+  <% end %>
+</div>
 
 <h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
 
 <%= form_with url: analyze_week_path, method: :post do %>
   <%= hidden_field_tag :start_date, @startdate %>
   <%= hidden_field_tag :end_date, @enddate %>
-  <%= submit_tag '今週をまとめて分析' %>
+  <%= submit_tag '週の記録をまとめて分析' %>
 <% end %>
 
-
-<% @pages_thisweek.each do |page| %>
-  <div>
-    <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
-    <%= page.content.gsub("\n", "<br>").html_safe %>
-  </div>
-<% end %>
-
-<h2><%= @lastweek_startdate.strftime("%Y/%m/%d") %> ~ <%= @lastweek_enddate.strftime("%Y/%m/%d") %></h2>
-
-<% @pages_lastweek.each do |page| %>
-  <div>
-    <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
-    <%= page.content.gsub("\n", "<br>").html_safe %>
-  </div>
-<% end %>
+<div class="week-section">
+  <details>
+    <summary>
+      今週の記録
+      <button class="copy-btn" onclick="event.preventDefault(); copyWeekContent();">コピー</button>
+    </summary>
+    
+    <% @pages_thisweek.each do |page| %>
+      <div>
+        <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
+        <%= page.content.gsub("\n", "<br>").html_safe %>
+      </div>
+    <% end %>
+  </details>
+</div>
 
 <hr>
 
-<div class="week-section">
-  <h2 class="week-title">今週 (<%= @startdate.strftime("%Y/%m/%d") %> - <%= @enddate.strftime("%Y/%m/%d") %>)</h2>
-  
+<div class="week-section"> 
   <% if @thisweek_avg.any? %>
     <div class="week-summary">
       平均起床時間：<strong><%= @thisweek_wake_avg.strftime("%H:%M") %></strong><br>
@@ -121,38 +142,5 @@
   
   <% if @pages_thisweek.empty? %>
     <p>今週のデータがありません</p>
-  <% end %>
-</div>
-
-<div class="week-section">
-  <h2 class="week-title">先週 (<%= @lastweek_startdate.strftime("%Y/%m/%d") %> - <%= @lastweek_enddate.strftime("%Y/%m/%d") %>)</h2>
-  
-  <% if @lastweek_avg.any? %>
-    <div class="week-summary">
-      <h3>📊 カテゴリごとの一日平均時間</h3>
-      <div>
-        <% @lastweek_avg.each do |category, avg_minutes| %>
-          <span class="avg-category">
-            <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
-            <%= category %>: <strong><%= "#{(avg_minutes/60).to_i}h#{(avg_minutes%60).to_i}m" %></strong>
-          </span>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
-  
-  <% @pages_lastweek.each do |page| %>
-    <div class="day-section">
-      <div class="day-header">
-        <a href="<%= date_path(page.date.strftime("%Y%m%d")) %>">
-          <%= page.date.strftime("%Y/%m/%d %a") %>
-        </a>
-      </div>
-      <%= render partial: "records", locals: { page: page } %>
-    </div>
-  <% end %>
-  
-  <% if @pages_lastweek.empty? %>
-    <p>先週のデータがありません</p>
   <% end %>
 </div>
