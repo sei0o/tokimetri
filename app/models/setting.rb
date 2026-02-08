@@ -4,29 +4,21 @@ class Setting < ApplicationRecord
   end
 
   def prompt
-    return '' if self[:prompt].blank?
+    return "" if self[:prompt].blank?
     self[:prompt].strip
   end
 
-  # カテゴリは name,color(#rrggbb) のペアが\n区切りで複数入っている
   def categories
-    # return [] if self[:categories].blank?
-
-    # self[:categories].split("\n").map do |line|
-    #   name, color = line.split(",")
-    #   { name: name.strip, color: color.strip }
-    # end
     {
-      '睡眠' => '#3c4c5d',
-      '事務' => '#2d8a44',
-      '研究' => '#4175c9',
-      '趣味' => '#c43dad',
-      'だらだら' => '#eb0348',
-      '娯楽' => '#b16128',
-      '生活' => '#46843e',
-      '仕事' => '#357e9e',
-      '移動' => '#6e6e6e',
+      "睡眠" => "#3c4c5d",
+      "事務" => "#2d8a44",
+      "研究" => "#4175c9",
+      "講義" => "#13634b",
+      "趣味" => "#c43dad", # 読書、絵を描く, tokimetri開発, お菓子作り, ゲーム(ソシャゲ以外), ブログ執筆
+      "娯楽/だらだら" => "#eb0348", # ぼーっとする、ネットサーフィン、YouTube、, ソシャゲ
+      "生活" => "#46843e", # 週次レビュー
+      "仕事" => "#357e9e",
+      "移動" => "#6e6e6e"
     }
   end
-
 end
