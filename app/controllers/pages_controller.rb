@@ -48,6 +48,30 @@ class PagesController < ApplicationController
           max: durations.max
         }
       end
+
+      # Search from all the text content
+      matching_pages = Page.where("content LIKE ?", "%#{params[:q]}%").order(date: :desc)
+      # grep -C 1 のように前後 1 行を含めて表示用に整形
+      @matches = matching_pages.map do |page|
+        lines = page.content.to_s.lines
+        match_indices = lines.each_index.select { |i| lines[i].include?(params[:q]) }
+
+        ranges = match_indices.map { |i| [ [ i - 1, 0 ].max, [ i + 1, lines.length - 1 ].min ] }
+        # example: [ [0, 2], [1, 3], [5, 7] ] -> [ [0, 3], [5, 7] ]
+        merged_ranges = ranges.sort.each_with_object([]) do |(start_idx, end_idx), merged|
+          if merged.empty? || start_idx > merged.last[1] + 1
+            merged << [ start_idx, end_idx ]
+          else
+            merged.last[1] = [ merged.last[1], end_idx ].max
+          end
+        end
+
+        matches = merged_ranges.map { |start_idx, end_idx| lines[start_idx..end_idx] }
+
+        { page: page, matches: matches }
+      end
+
+      @query = params[:q]
     else
       @records = []
     end

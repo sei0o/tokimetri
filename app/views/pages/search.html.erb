@@ -2,14 +2,22 @@
   .day-separator {
     padding-top: 1rem;
   }
+
+  .match {
+    background-color: lightyellow;
+    font-weight: bold;
+    margin: 0 0.3rem;
+  }
 </style>
 
+<% q = params[:q] %>
+
 <%= form_with url: search_path, method: :get, local: true do |f| %>
-  <%= f.text_field :q, value: params[:q], placeholder: "検索ワードを入力" %>
+  <%= f.text_field :q, value: q, placeholder: "検索ワードを入力" %>
   <%= f.submit "検索" %>
 <% end %>
 
-<% if params[:q].present? %>
+<% if q.present? %>
   <% if @stats %>
     <div style="background-color: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px;">
       <strong>統計情報</strong><br>
@@ -48,5 +56,19 @@
         <% end %>
       </tbody>
     </table>
+  <% end %>
+
+  <% if @matches.any? %>
+    <h2>全文検索</h2>
+    <% @matches.each do |match| %>
+      <div style="margin-bottom: 20px;">
+        <h3><%= link_to match[:page].date.strftime("%Y-%m-%d"), date_path(match[:page].date.strftime("%Y%m%d")) %></h3>
+        <% match[:matches].each do |range| %>
+          <p>
+            <%= range.join("<br>").gsub(q, "<span class='match'>#{q}</span>").html_safe %>
+          </p>
+        <% end %>
+      </div>
+    <% end %>
   <% end %>
 <% end %>
