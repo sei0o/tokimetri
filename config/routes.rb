@@ -20,7 +20,6 @@ Rails.application.routes.draw do
 
   # その他のルート
   resources :pages, only: [ :index ]
-  resources :settings, only: [ :edit, :update ]
   get "/search", to: "pages#search", as: :search
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
@@ -32,7 +31,7 @@ Rails.application.routes.draw do
   post "/analyze_week", to: "pages#analyze_week"
   post "/analyze_all", to: "pages#analyze_all", as: :analyze_all
 
-  get "/settings", to: "settings#edit", as: :settings
+ get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings
 
   root "pages#index"

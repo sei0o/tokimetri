@@ -110,7 +110,10 @@
       <% end %>
     <% end %>
 
-    <%= render partial: "records", locals: { page: page } %>
+    <%= turbo_frame_tag page do %>
+      <%= link_to "Edit", date_path(page.date.strftime("%Y%m%d"), editable: 1) %>
+      <%= render partial: "records", locals: { page: page } %>
+    <% end %>
   </div>
 
   <!-- show last week's content -->

@@ -1,50 +1,45 @@
-<%= form_with model: @setting, url: settings_path, method: :put do |f| %>
-  <%= f.label :prompt, "プロンプト" %>
-  <div id="editor" data-controller="editor">
-      <nav>
-        <%= form.submit 'Save' %>
-        <span id="editor-status" data-editor-target="status" class="save-status"></span>
-        <br>
-        <small>
-        </small>
-      </nav>
-      <div id="editor-text">
-        <%= f.text_area :prompt, "data-editor-target": "textarea" %>
-      </div>
-  </div>
+<%= form_with model: @setting, url: settings_path, method: :patch do |f| %>
+<dl>
+  <dt><%= f.label :prompt, "プロンプト" %></dt>
+  <dd>
+    <div id="editor-text">
+      <%= f.text_area :prompt, value: @setting.prompt, rows: 5, cols: 50 %>
+    </div>
+  </dd>
 
-  <%= f.label :categories, "カテゴリ" %>
-  <div>
+  <dt><%= f.label :categories, "カテゴリ" %></dt>
+  <dd>
     <div id="categories-fields">
-      <% (@setting.categories || []).each_with_index do |category, i| %>
+      <% (@setting.categories || {}).each do |name, color| %>
         <div class="category-pair">
-          <%= f.text_field :categories, name: "setting[categories][#{i}][name]", value: category['name'], placeholder: "カテゴリ名" %>
-          <%= f.color_field :categories, name: "setting[categories][#{i}][color]", value: category['color'] || "#000000" %>
+          <input type="text" name="setting[categories][][name]" value="<%= name %>" placeholder="カテゴリ名">
+          <input type="color" name="setting[categories][][color]" value="<%= color || '#000000' %>">
           <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
         </div>
       <% end %>
     </div>
     <button type="button" id="add-category">＋カテゴリ追加</button>
-  </div>
+  </dd>
 
+  <dt><%= f.label :timezone, "タイムゾーン" %></dt>
+  <dd><%= f.time_zone_select :timezone, ActiveSupport::TimeZone.all, selected: @setting.timezone || "Tokyo" %></dd>
+</dl>
 
+  <br>
   <%= f.submit "保存" %>
 <% end %>
 
 
 <script>
-    let index = <%= (@setting.categories || []).size %>;
     document.getElementById("add-category").addEventListener("click", function() {
-      const container = document.getElementById("categories-fields");
       const div = document.createElement("div");
       div.className = "category-pair";
       div.innerHTML = `
-        <input type="text" name="setting[categories][${index}][name]" placeholder="カテゴリ名" />
-        <input type="color" name="setting[categories][${index}][color]" value="#000000" />
+        <input type="text" name="setting[categories][][name]" placeholder="カテゴリ名">
+        <input type="color" name="setting[categories][][color]" value="#000000">
         <button type="button" class="remove-category" onclick="this.parentNode.remove()">削除</button>
       `;
-      container.appendChild(div);
-      index++;
+      document.getElementById("categories-fields").appendChild(div);
     });
 </script>
 
@@ -63,9 +58,12 @@
     padding: 0.2rem 0.5rem;
     border-radius: 3px;
   }
-</style>
 
-<style>
+  dt {
+    font-weight: bold;
+    margin-top: 1rem;
+  }
+
   #editor {
     width: 100%;
     box-sizing: border-box;

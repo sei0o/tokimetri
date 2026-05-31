@@ -1,0 +1,62 @@
+<style>
+  .record-editable td {
+    padding: 5px;
+    vertical-align: top;
+  }
+  .record-editable input[type="text"],
+  .record-editable select {
+    border: none;
+    background: transparent;
+    font-size: inherit;
+    font-family: inherit;
+    padding: 0;
+    color: inherit;
+    width: 100%;
+    height: auto;
+    vertical-align: top;
+  }
+  .record-editable input[type="text"]:focus,
+  .record-editable select:focus {
+    outline: 1px solid rgba(0, 0, 0, 0.3);
+    border-radius: 2px;
+  }
+  .day-separator td {
+    text-align: center;
+    font-size: 0.8em;
+    color: #999;
+    padding: 4px 0 2px;
+    border-top: 1px solid #ccc;
+  }
+</style>
+
+<%= turbo_frame_tag page do %>
+  <%= form_with model: page, url: update_date_page_path(page.date.strftime("%Y%m%d")), method: :patch, data: { turbo_frame: "_top", page_date: page.date.strftime("%Y-%m-%d") } do |f| %>
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Start</th>
+          <th>End</th>
+          <th>What</th>
+          <th>Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% prev_date = page.date %>
+        <%= f.fields_for :records do |rf| %>
+          <% record_date = rf.object.start_time&.to_date %>
+          <% if record_date && record_date > prev_date %>
+            <tr class="day-separator"><td colspan="5">— 翌日 —</td></tr>
+            <% prev_date = record_date %>
+          <% end %>
+          <%= render partial: "record_row_editable", locals: { form: rf, page: page } %>
+        <% end %>
+
+        <%= f.fields_for :records, Record.new do |rf| %>
+          <%= render partial: "record_row_editable", locals: { form: rf, page: page } %>
+        <% end %>
+      </tbody>
+    </table>
+    <%= f.submit "保存" %>
+  <% end %>
+<% end %>

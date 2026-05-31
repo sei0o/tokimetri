@@ -15,6 +15,7 @@ class Page < ApplicationRecord
   validates :content, presence: true
 
   has_many :records, dependent: :destroy
+  accepts_nested_attributes_for :records, allow_destroy: true
 
   def wake_time
     if last = records.where(category: "睡眠").order(:end_time).last
@@ -121,7 +122,17 @@ class Page < ApplicationRecord
   private
     def prompt
       today = self.date.strftime("%Y-%m-%d")
-      cat = Setting.instance.categories.map { |k, v| "「#{k}」" }.join
+      setting = Setting.instance
+      cat = setting.categories.keys.map { |name| "「#{name}」" }.join
+      category_rules = setting.prompt.presence || <<~RULES.strip
+        - 「Tier4」= 仕事
+        - 趣味: 読書・絵を描く・tokimetri開発・お菓子作り・ゲーム（ソシャゲ以外）・ブログ執筆・日記書く・ジャーナリングなど
+        - 娯楽/だらだら: ぼーっとする・ネットサーフィン・YouTube・ソシャゲ・研究室での雑談など
+        - 研究: 実験・検証・論文読む・発表・輪講・研究コーディングなど（Tier4の仕事ではない技術的作業）
+        - 生活: 週次レビューなど / 講義: 定期試験など / 事務: 留学報告書・エントリーシート・SPIなど
+        - 睡眠カテゴリは睡眠のみ（例外なし）
+        - 仕事・就活が 2 時間超続く場合 → 娯楽/だらだら
+      RULES
 
       <<-PROMPT
       ## ★最重要: 時刻の読み方（絶対に守ること）
@@ -143,13 +154,7 @@ class Page < ApplicationRecord
 
       #{cat}から最も近いものを選ぶ。
 
-      - 「Tier4」= 仕事
-      - 趣味: 読書・絵を描く・tokimetri開発・お菓子作り・ゲーム（ソシャゲ以外）・ブログ執筆・日記書く・ジャーナリングなど
-      - 娯楽/だらだら: ぼーっとする・ネットサーフィン・YouTube・ソシャゲ・研究室での雑談など
-      - 研究: 実験・検証・論文読む・発表・輪講・研究コーディングなど（Tier4の仕事ではない技術的作業）
-      - 生活: 週次レビューなど / 講義: 定期試験など / 事務: 留学報告書・エントリーシート・SPIなど
-      - 睡眠カテゴリは睡眠のみ（例外なし）
-      - 仕事・就活が 2 時間超続く場合 → 娯楽/だらだら
+      #{category_rules}
 
       ## 変換ルール
 

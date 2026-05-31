@@ -1,0 +1,38 @@
+<%
+  record = form.object
+  duration = record.duration_minutes
+  bg_color = hex_to_pastel(@categories[record.category])
+  category_options = @categories.map { |cat, color| [cat, cat, { data: { color: hex_to_pastel(color) } }] }
+
+  def extended_time(datetime, page_date)
+    return "" unless datetime
+    offset_hours = (datetime.to_date - page_date).to_i * 24 + datetime.hour
+    "#{offset_hours}:#{datetime.strftime('%M')}"
+  end
+%>
+<tr class="record record-editable"
+    data-controller="record-editable"
+    style="height: <%= [1, 1 + ((duration || 0) - 20) / 20.0].max %>rem; background-color: <%= bg_color %>;">
+  <td><%= form.check_box :_destroy %></td>
+  <td>
+    <input type="text" value="<%= extended_time(record.start_time, page.date) %>"
+           placeholder="23:30"
+           data-action="change->record-editable#syncTime"
+           data-record-editable-target="startTimeDisplay">
+    <%= form.datetime_local_field :start_time, style: "display:none",
+        data: { record_editable_target: "startTime" } %>
+  </td>
+  <td>
+    <input type="text" value="<%= extended_time(record.end_time, page.date) %>"
+           placeholder="25:00"
+           data-action="change->record-editable#syncTime"
+           data-record-editable-target="endTimeDisplay">
+    <%= form.datetime_local_field :end_time, style: "display:none",
+        data: { record_editable_target: "endTime" } %>
+  </td>
+  <td><%= form.text_field :what %></td>
+  <td>
+    <%= form.select :category, category_options, { include_blank: true },
+        { data: { action: "change->record-editable#updateColor" } } %>
+  </td>
+</tr>

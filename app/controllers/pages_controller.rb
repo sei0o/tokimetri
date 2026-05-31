@@ -8,11 +8,15 @@ class PagesController < ApplicationController
   end
 
   def today
-    redirect_to date_path(Date.today.strftime("%Y%m%d"))
+    redirect_to date_path(Date.current.strftime("%Y%m%d"))
   end
 
   def show
     @categories = Setting.instance.categories
+    if turbo_frame_request? && params[:editable].present?
+      render partial: "records_editable", locals: { page: @page }
+      return
+    end
     render :show
   end
 
@@ -217,6 +221,7 @@ class PagesController < ApplicationController
   end
 
   def page_params
-    params.expect(page: [ :date, :content ])
+    params.require(:page).permit(:date, :content,
+      records_attributes: [ :id, :start_time, :end_time, :what, :category, :_destroy ])
   end
 end
