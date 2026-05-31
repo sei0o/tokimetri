@@ -77,6 +77,15 @@ class PagesController < ApplicationController
     end
   end
 
+  def random
+    @page = Page.where.not(content: [ nil, "" ]).order("RANDOM()").first
+    if @page
+      redirect_to date_path(@page.date.strftime("%Y%m%d"))
+    else
+      redirect_to today_path, alert: "内容があるページが見つかりませんでした"
+    end
+  end
+
   def create
     @page.assign_attributes(page_params)
     if @page.save

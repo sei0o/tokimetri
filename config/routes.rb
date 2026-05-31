@@ -25,6 +25,7 @@ Rails.application.routes.draw do
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
   get "/today", to: "pages#today", as: :today
+  get "/random", to: "pages#random", as: :random
   get "/try", to: "pages#try", as: :try
   get "/review", to: "pages#review", as: :review
   get "/review/:date", to: "pages#review", as: :review_date
