@@ -8,7 +8,9 @@ class PagesController < ApplicationController
   end
 
   def today
-    redirect_to date_path(Date.current.strftime("%Y%m%d"))
+    now = Time.now.in_time_zone(Setting.instance.timezone.presence || "Tokyo")
+    date = now.hour < 4 ? now.to_date - 1.day : now.to_date
+    redirect_to date_path(date.strftime("%Y%m%d"))
   end
 
   def show
