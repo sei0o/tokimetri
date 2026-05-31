@@ -11,16 +11,15 @@ module PagesHelper
   end
 
   def activities_by_date_for_page(page)
-    return {} unless page.analyzed_content.present?
+    return {} unless page.records.any?
 
     ret = {}
 
-    data = JSON.parse(page.analyzed_content)
-    data["records"].each do |record|
-      next if record["start"].nil? || record["end"].nil?
+    page.records.each do |record|
+      next if record.start_time.nil? || record.end_time.nil?
 
-      start_match = record["start"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
-      end_match = record["end"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+      start_match = record.start_time.strftime("%Y-%m-%d %H:%M").match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+      end_match = record.end_time.strftime("%Y-%m-%d %H:%M").match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
       next unless start_match && end_match
 
       start_date = "#{start_match[1]}-#{start_match[2]}-#{start_match[3]}"
@@ -41,8 +40,8 @@ module PagesHelper
   end
 
   def calculate_hday_slot_position(record, date)
-    start_match = record["start"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
-    end_match = record["end"].match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+    start_match = record.start_time.strftime("%Y-%m-%d %H:%M").match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
+    end_match = record.end_time.strftime("%Y-%m-%d %H:%M").match(/(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/)
 
     start_date = "#{start_match[1]}-#{start_match[2]}-#{start_match[3]}"
     end_date = "#{end_match[1]}-#{end_match[2]}-#{end_match[3]}"
@@ -77,8 +76,8 @@ module PagesHelper
     {
       left_pos: left_pos,
       width: width,
-      category: record["category"],
-      title: "#{record["what"]} (#{record["start"]} - #{record["end"]})"
+      category: record.category,
+      title: "#{record.what} (#{record.start_time} - #{record.end_time})"
     }
   end
 

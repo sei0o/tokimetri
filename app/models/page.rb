@@ -54,9 +54,6 @@ class Page < ApplicationRecord
 
     parsed = chat_completion.choices.first.message.parsed
 
-    # JSON として保存
-    self.update(analyzed_content: { records: parsed.records }.to_json)
-
     # add records
     self.records.destroy_all
 

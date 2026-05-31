@@ -18,7 +18,7 @@ class PagesController < ApplicationController
 
   def view
     require "csv"
-    @pages = Page.where.not(analyzed_content: nil)
+    @pages = Page.includes(:records).where.not(records: { id: nil }).distinct
     @categories = Setting.instance.categories
   end
 
@@ -128,7 +128,9 @@ class PagesController < ApplicationController
   end
 
   def analyze_all
-    pages = Page.where(analyzed_content: [ nil, "" ]).where.not(content: [ nil, "" ])
+    pages = Page.left_outer_joins(:records)
+                .where.not(content: [ nil, "" ])
+                .where(records: { id: nil })
     count = pages.count
 
     pages.each do |page|
@@ -158,7 +160,7 @@ class PagesController < ApplicationController
 
     analyzing = session[:analyzing_week]
     if analyzing && analyzing["start"] == @startdate.to_s
-      unanalyzed = @pages_thisweek.any? { |p| p.content.present? && p.analyzed_content.blank? }
+      unanalyzed = @pages_thisweek.any? { |p| p.content.present? && p.records.empty? }
       if unanalyzed
         @analyzing = true
       else
