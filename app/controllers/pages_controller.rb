@@ -147,6 +147,16 @@ class PagesController < ApplicationController
     @thisweek_wake_avg = Page.average_wake_time(@pages_thisweek)
     @thisweek_total = Page.calculate_category_total(@pages_thisweek)
 
+    analyzing = session[:analyzing_week]
+    if analyzing && analyzing["start"] == @startdate.to_s
+      unanalyzed = @pages_thisweek.any? { |p| p.content.present? && p.analyzed_content.blank? }
+      if unanalyzed
+        @analyzing = true
+      else
+        session.delete(:analyzing_week)
+      end
+    end
+
     render :review
   end
 
@@ -154,13 +164,10 @@ class PagesController < ApplicationController
     start_date = Date.parse(params[:start_date])
     end_date = Date.parse(params[:end_date])
 
-    pages = Page.where(date: start_date..end_date)
+    AnalyzeWeekJob.perform_later(start_date, end_date)
+    session[:analyzing_week] = { "start" => start_date.to_s, "end" => end_date.to_s }
 
-    pages.each do |page|
-      page.analyze_and_update if page.content.present?
-    end
-
-    redirect_to review_path, notice: "#{start_date.strftime('%Y/%m/%d')} - #{end_date.strftime('%Y/%m/%d')} を分析しました"
+    redirect_to review_path(date: start_date), notice: "分析をバックグラウンドで開始しました。完了すると自動で更新されます"
   rescue Date::Error
     redirect_to review_path, alert: "日付の解析に失敗しました"
   end

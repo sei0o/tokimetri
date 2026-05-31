@@ -78,6 +78,15 @@
 
 <h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
 
+<% if @analyzing %>
+  <div id="analyzing-banner" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 1rem;">
+    バックグラウンドで分析中です。完了後に自動更新されます…
+  </div>
+  <script>
+    setTimeout(function() { location.reload(); }, 8000);
+  </script>
+<% end %>
+
 <%= form_with url: analyze_week_path, method: :post do %>
   <%= hidden_field_tag :start_date, @startdate %>
   <%= hidden_field_tag :end_date, @enddate %>
@@ -105,7 +114,9 @@
 <div class="week-section"> 
   <% if @thisweek_avg.any? %>
     <div class="week-summary">
-      平均起床時間：<strong><%= @thisweek_wake_avg.strftime("%H:%M") %></strong><br>
+      <% if @thisweek_wake_avg %>
+        平均起床時間：<strong><%= @thisweek_wake_avg.strftime("%H:%M") %></strong><br>
+      <% end %>
 
       カテゴリ別平均時間：<br>
       <div>
