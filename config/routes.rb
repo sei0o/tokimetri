@@ -34,5 +34,12 @@ Rails.application.routes.draw do
  get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings
 
+  get "/planner", to: "planner#index", as: :planner
+  get "/planner/clean", to: "planner#clean", as: :planner_clean
+  get "/planner/meet", to: "planner#meet", as: :planner_meet
+  get "/planner/bath", to: "planner#bath", as: :planner_bath
+  get "/planner/everyday", to: "planner#everyday", as: :planner_everyday
+  get "/planner/meal", to: "planner#meal", as: :planner_meal
+
   root "pages#index"
 end

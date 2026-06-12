@@ -1,0 +1,148 @@
+<div class="planner">
+  <div class="panel">
+    <h1>人に会う</h1>
+    <div class="inline-time-row">会う日時は <input class="time-input" id="rendezvous-time" type="time"></div>
+    <div class="inline-time-row">
+      電車を調べる &nbsp;
+      <input type="checkbox" id="train-check">
+      <label for="train-check"></label>
+    </div>
+    <div class="inline-time-row">家を出る時間 <input class="time-input" id="departure-time" type="time"></div>
+    <div class="inline-time-row">準備開始時刻 = <span class="time-preview" id="prepare-start-time">??:??</span></div>
+    <div class="inline-time-row">
+      カレンダーに入れる &nbsp;
+      <input type="checkbox" id="calendar-check">
+      <label for="calendar-check"></label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>当日</h2>
+    <div id="timer"></div>
+    <br>
+    合計時間：<span id="total-time">??分</span><br>
+    <ul id="tasks" class="task-list"></ul>
+    <div class="inline-time-row">
+      家を出る時間 <span class="time-preview" id="departure-time-last">??:??</span>
+      (あと <span id="time-to-departure">??分</span>)
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { PlannerTimer } from "planner_timer";
+
+const tasks = [
+  { title: '電車の運行を再確認する', duration: 5 * 60 },
+  { title: '服を選んで着る', duration: 5 * 60 },
+  { title: '歯みがき', duration: 3 * 60 },
+  { title: '髭を剃る', duration: 1 * 60 },
+  { title: '持ち物を確認する', duration: 5 * 60 },
+];
+
+const timerEl = document.getElementById('timer');
+const tasksEl = document.getElementById('tasks');
+const timer = new PlannerTimer(tasks, render);
+
+document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
+
+const departureInput = document.getElementById('departure-time');
+departureInput.addEventListener('input', () => {
+  updatePrepareStartTime();
+  render();
+});
+
+render();
+updatePrepareStartTime();
+
+function render() {
+  timer.renderTimer(timerEl);
+  renderTasks();
+  updateTotalTime();
+  updateTimeToDeparture();
+  updateDepartureTimeLast();
+}
+
+function parseTime(value) {
+  if (!value) return null;
+  const [h, m] = value.split(':').map(Number);
+  if (isNaN(h) || isNaN(m)) return null;
+  return h * 60 + m;
+}
+
+function toTimeText(totalMinutes) {
+  const n = ((totalMinutes % 1440) + 1440) % 1440;
+  return `${String(Math.floor(n / 60)).padStart(2, '0')}:${String(n % 60).padStart(2, '0')}`;
+}
+
+function fmtSignedMin(m) {
+  return m >= 0 ? `${m}分` : `-${Math.abs(m)}分`;
+}
+
+function getRemainingTotalMinutes() {
+  let s = 0;
+  for (let i = 0; i < tasks.length; i++) {
+    s += timer.done[i] ? 0 : (i === timer.state.index ? Math.max(0, timer.state.remaining) : tasks[i].duration);
+  }
+  return Math.max(0, Math.round(s / 60));
+}
+
+function updateTotalTime() {
+  document.getElementById('total-time').textContent = `${getRemainingTotalMinutes()}分`;
+}
+
+function updatePrepareStartTime() {
+  const el = document.getElementById('prepare-start-time');
+  const dep = parseTime(departureInput.value);
+  el.textContent = dep != null ? toTimeText(dep - getRemainingTotalMinutes()) : '??:??';
+}
+
+function updateDepartureTimeLast() {
+  document.getElementById('departure-time-last').textContent = departureInput.value || '??:??';
+}
+
+function updateTimeToDeparture() {
+  const el = document.getElementById('time-to-departure');
+  const dep = parseTime(departureInput.value);
+  if (dep == null) { el.textContent = '??分'; el.classList.remove('alert'); return; }
+  const now = new Date();
+  const remaining = dep - (now.getHours() * 60 + now.getMinutes());
+  el.textContent = fmtSignedMin(remaining);
+  el.classList.toggle('alert', remaining < 0);
+}
+
+function renderTasks() {
+  tasksEl.innerHTML = '';
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const depMin = parseTime(departureInput.value);
+  let cumSec = 0;
+
+  tasks.forEach((task, i) => {
+    const remSec = timer.done[i] ? 0 : (i === timer.state.index ? Math.max(0, timer.state.remaining) : task.duration);
+    const startMin = nowMin + Math.round(cumSec / 60);
+    const minsToDep = depMin != null ? depMin - startMin : null;
+    const isLate = minsToDep != null && minsToDep < 0;
+
+    const item = document.createElement('li');
+    item.className = ['task', timer.done[i] ? 'done' : i === timer.state.index ? 'active' : ''].filter(Boolean).join(' ');
+    item.innerHTML = `
+      <input type="checkbox" ${timer.done[i] ? 'checked' : ''} aria-label="${task.title}">
+      <div class="task-main">
+        <div class="task-title">${task.title}</div>
+        <div class="task-duration">${PlannerTimer.fmtMin(remSec)}</div>
+        <div class="task-meta ${isLate ? 'alert' : ''}">
+          ${timer.done[i] ? '完了' : `予想開始 ${toTimeText(startMin)}${minsToDep != null ? ` / 出発まであと ${fmtSignedMin(minsToDep)}` : ''}`}
+        </div>
+      </div>
+    `;
+    const cb = item.querySelector('input');
+    cb.addEventListener('change', () => timer.toggle(i, cb.checked));
+    item.addEventListener('click', e => {
+      if (e.target.tagName !== 'INPUT') { cb.checked = !cb.checked; timer.toggle(i, cb.checked); }
+    });
+    tasksEl.appendChild(item);
+    cumSec += remSec;
+  });
+}
+</script>

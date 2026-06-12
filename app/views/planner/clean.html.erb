@@ -1,0 +1,76 @@
+<div class="planner">
+  <div class="panel">
+    <h1>掃除</h1>
+  </div>
+  <div class="panel">
+    <div id="timer"></div>
+  </div>
+  <div class="panel">
+    <div id="weather" class="weather-note"></div>
+    <ul id="tasks" class="task-list"></ul>
+  </div>
+</div>
+
+<script type="module">
+import { PlannerTimer } from "planner_timer";
+
+const tasks = [
+  { title: '音楽をかける', duration: 60 },
+  { title: '服をクローゼット、洗濯機へ', duration: 180 },
+  { title: '洗濯機を回す', duration: 60 },
+  { title: 'ゴミを捨てる', duration: 180 },
+  { title: '本を集める→可能なら本棚へ', duration: 300 },
+  { title: '机の上のものを減らす', duration: 300 },
+  { title: 'ふきん/メラミンスポンジを変える', duration: 60 },
+  { title: '机を拭く', duration: 240 },
+  { title: '服をクローゼットへ', duration: 180 },
+  { title: '食器をシンクへ', duration: 120 },
+  { title: '手を足の爪を切る', duration: 300 },
+  { title: '洗い物, シンク・コンロを掃除', duration: 600 },
+  { title: '掃除機をかける', duration: 300 },
+  { title: 'トイレ掃除する', duration: 180 },
+  { title: '干す', duration: 900 },
+  { title: '洗濯機のホコリをとる', duration: 180 },
+  { title: '洗濯物を取り込む', duration: 600 },
+];
+
+const timerEl = document.getElementById('timer');
+const tasksEl = document.getElementById('tasks');
+const timer = new PlannerTimer(tasks, () => {
+  timer.renderTimer(timerEl);
+  timer.renderTasks(tasksEl);
+});
+
+document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
+
+timer.renderTimer(timerEl);
+timer.renderTasks(tasksEl);
+loadWeather();
+
+async function loadWeather() {
+  const weatherEl = document.getElementById('weather');
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=35.732&longitude=139.74&hourly=precipitation,precipitation_probability&forecast_days=1&timezone=Asia%2FTokyo';
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const hours = data.hourly?.time || [];
+    const precipitation = data.hourly?.precipitation || [];
+    const probability = data.hourly?.precipitation_probability || [];
+    const now = new Date();
+    const limit = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    let rainSoon = false;
+    for (let i = 0; i < hours.length; i++) {
+      const t = new Date(hours[i]);
+      if (t <= now || t > limit) continue;
+      if ((precipitation[i] || 0) > 0 || (probability[i] || 0) >= 30) { rainSoon = true; break; }
+    }
+    weatherEl.textContent = rainSoon
+      ? '雨が降りそうです。洗濯の干しどきだけ少し気をつけてください。'
+      : '天気は直近9時間は大きく崩れなさそうです。';
+    weatherEl.classList.add('show');
+  } catch {
+    weatherEl.textContent = '天気の取得に失敗しました。';
+    weatherEl.classList.add('show');
+  }
+}
+</script>

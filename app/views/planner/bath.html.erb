@@ -1,0 +1,36 @@
+<div class="planner">
+  <div class="panel">
+    <h1>入浴</h1>
+    <p class="subtle">紅茶でもいれる / 冷めないようにする</p>
+  </div>
+  <div class="panel">
+    <div id="timer"></div>
+  </div>
+  <div class="panel">
+    <ul id="tasks" class="task-list"></ul>
+  </div>
+</div>
+
+<script type="module">
+import { PlannerTimer } from "planner_timer";
+
+const tasks = [
+  { title: 'シャワーを浴びる', duration: 20 * 60 },
+  { title: '保湿をする', duration: 2 * 60 },
+  { title: '髪を乾かす', duration: 3 * 60 },
+  { title: '新しい下着を着る', duration: 2 * 60 },
+  { title: '脱いだ服を片付ける', duration: 1 * 60 },
+];
+
+const timerEl = document.getElementById('timer');
+const tasksEl = document.getElementById('tasks');
+const timer = new PlannerTimer(tasks, () => {
+  timer.renderTimer(timerEl);
+  timer.renderTasks(tasksEl);
+});
+
+document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
+
+timer.renderTimer(timerEl);
+timer.renderTasks(tasksEl);
+</script>

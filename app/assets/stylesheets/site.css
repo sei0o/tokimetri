@@ -1,0 +1,259 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: white;
+}
+
+#container {
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  background-color: white;
+  height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+#pagenav {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: #333;
+}
+
+#pagenav ul {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
+
+#pagenav li {
+  display: inline;
+  margin: 0 0.5rem;
+}
+
+#service {
+  font-weight: bold;
+}
+
+
+#pagenav a:link {
+  text-decoration: none;
+  color: #333;
+}
+
+#pagenav a:visited {
+  text-decoration: none;
+  color: #333;
+}
+
+#pagenav a:hover {
+  text-decoration: underline;
+}
+
+/* On small screens make the container span the full viewport width. */
+@media (max-width: 600px) {
+  #container {
+    max-width: none;
+    margin: 0;
+    height: auto;
+    min-height: 100vh;
+    box-sizing: border-box;
+  }
+}
+
+/* Planner */
+.planner {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1f1f1f;
+}
+
+.planner .panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.planner h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.6rem;
+}
+
+.planner h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.planner .subtle {
+  color: #666;
+  font-size: 0.92rem;
+}
+
+.planner .timer-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.planner .timer-state {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.planner .timer-count {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.planner .buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.planner .buttons button {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #1f1f1f;
+  border-radius: 3px;
+  padding: 0.65rem 1rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.planner .buttons button.primary {
+  background: #3a3a3a;
+  color: white;
+  border-color: #3a3a3a;
+}
+
+.planner .buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.planner .weather-note {
+  border-left: 2px solid #777;
+  padding: 0.25rem 0 0.75rem 0.75rem;
+  display: none;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.planner .weather-note.show {
+  display: block;
+}
+
+.planner .task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.planner .task {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem 0.9rem;
+  background: white;
+  cursor: pointer;
+}
+
+.planner .task.active {
+  background: #f7f7f7;
+}
+
+.planner .task.done {
+  background: #f3f3f3;
+}
+
+.planner .task-main {
+  display: grid;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "title duration" "meta meta";
+}
+
+.planner .task-title {
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  grid-area: title;
+}
+
+.planner .task-duration {
+  color: #666;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  grid-area: duration;
+}
+
+.planner .task-meta {
+  grid-area: meta;
+  color: #666;
+  font-size: 0.82rem;
+}
+
+.planner .task-meta.alert {
+  color: #c0392b;
+  font-weight: 600;
+}
+
+.planner .inline-time-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.planner .time-input {
+  font: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1f1f1f;
+  border: none;
+  border-bottom: 2px solid #ddd;
+  background: #fafafa;
+  border-radius: 8px 8px 0 0;
+  padding: 0.35rem 0.5rem 0.25rem;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.planner .time-input:hover { background: #f4f4f4; }
+.planner .time-input:focus { border-bottom-color: #3a3a3a; background: #f0f0f0; }
+
+.planner .time-preview {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+  border-bottom: 2px solid #ddd;
+}
+
+.planner .time-preview.alert,
+.planner #time-to-departure.alert {
+  color: #c0392b;
+}
+
+.planner task-item {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.planner task-item label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
