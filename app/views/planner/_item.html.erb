@@ -1,0 +1,18 @@
+<li id="item_<%= item.id %>" class="<%= item.item_type %>">
+  <% if item.task? %>
+    <label><input type="checkbox"></label>
+    <span contenteditable="false" data-controller="planner-item" data-item-id="<%= item.id %>"
+      data-action="blur->planner-item#save">
+      <%= item.content %>
+    </span>
+    <% else %>
+      <div contenteditable="false" data-controller="planner-item" data-item-id="<%= item.id %>"
+        data-action="blur->planner-item#save">
+        <%= item.content %>
+      </div>
+      <% end %>
+        <% if item.id.present? %>
+          <%= link_to planner_item_path(item), method: :delete, data: { turbo_stream: true }, form: {
+            style: "display:inline" } do %>−<% end %>
+              <% end %>
+</li>

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_05_31_125000) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_12_102221) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -58,6 +58,28 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_31_125000) do
     t.text "plan"
   end
 
+  create_table "planner_items", force: :cascade do |t|
+    t.integer "planner_list_id", null: false
+    t.integer "position", default: 0, null: false
+    t.string "item_type", default: "task", null: false
+    t.string "content", default: "", null: false
+    t.integer "duration_seconds"
+    t.string "condition"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["planner_list_id", "position"], name: "index_planner_items_on_planner_list_id_and_position"
+    t.index ["planner_list_id"], name: "index_planner_items_on_planner_list_id"
+  end
+
+  create_table "planner_lists", force: :cascade do |t|
+    t.string "slug", null: false
+    t.string "title", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "note"
+    t.index ["slug"], name: "index_planner_lists_on_slug", unique: true
+  end
+
   create_table "records", force: :cascade do |t|
     t.datetime "start_time"
     t.datetime "end_time"
@@ -77,7 +99,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_05_31_125000) do
     t.string "timezone", default: "Tokyo"
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "planner_items", "planner_lists"
   add_foreign_key "records", "pages"
 end

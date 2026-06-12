@@ -231,8 +231,14 @@ body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
-.planner .time-input:hover { background: #f4f4f4; }
-.planner .time-input:focus { border-bottom-color: #3a3a3a; background: #f0f0f0; }
+.planner .time-input:hover {
+  background: #f4f4f4;
+}
+
+.planner .time-input:focus {
+  border-bottom-color: #3a3a3a;
+  background: #f0f0f0;
+}
 
 .planner .time-preview {
   font-size: 1.1rem;
@@ -256,4 +262,186 @@ body {
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
+}
+
+/* Panel header */
+.panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.panel header h2 {
+  margin: 0;
+}
+
+.panel header>button {
+  border: none;
+  background: none;
+  color: #333;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.panel header>button:hover {
+  text-decoration: underline;
+}
+
+/* Item list */
+.panel ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.panel li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.panel li:last-child {
+  border-bottom: none;
+}
+
+.panel li>label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.panel li.task>span {
+  flex: 1;
+  outline: none;
+  cursor: default;
+}
+
+.panel.editing li.task>span {
+  cursor: text;
+}
+
+.panel li:has(input:checked)>span {
+  text-decoration: line-through;
+  color: #aaa;
+}
+
+.panel li.note>div {
+  flex: 1;
+  white-space: pre-wrap;
+  font-size: 0.88rem;
+  color: #555;
+  border-left: 2px solid #ddd;
+  padding-left: 0.6rem;
+  outline: none;
+  min-height: 1.2em;
+  cursor: default;
+}
+
+.panel.editing li.note>div {
+  cursor: text;
+}
+
+.panel li.note>div:focus {
+  border-left-color: #3a3a3a;
+}
+
+/* Delete button (hidden outside edit mode) */
+.panel li>form>a {
+  display: none;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.panel.editing li>form>button {
+  display: inline;
+}
+
+.panel li>form>button:hover {
+  color: #c0392b;
+}
+
+/* Add form (hidden outside edit mode) */
+.panel>form {
+  display: none;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+
+.panel.editing>form {
+  display: flex;
+}
+
+.panel>form input[type=text] {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  padding: 0.4rem 0;
+  font: inherit;
+  font-size: 0.92rem;
+  outline: none;
+  background: transparent;
+  box-sizing: border-box;
+}
+
+.panel>form input[type=text]:focus {
+  border-bottom-color: #3a3a3a;
+}
+
+.panel>form>button {
+  border: 1px solid #ddd;
+  background: #fff;
+  color: #555;
+  border-radius: 3px;
+  padding: 0.3rem 0.75rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.panel>form>button:hover {
+  background: #f5f5f5;
+}
+
+/* Note textarea */
+.panel>textarea {
+  width: 100%;
+  min-height: 3rem;
+  border: none;
+  border-top: 1px solid #f0f0f0;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  font: inherit;
+  font-size: 0.88rem;
+  color: #555;
+  resize: none;
+  outline: none;
+  background: transparent;
+  box-sizing: border-box;
+  cursor: default;
+}
+
+.panel.editing>textarea {
+  cursor: text;
+  resize: vertical;
+}
+
+.panel>textarea:focus {
+  border-top-color: #ddd;
+}
+
+.panel>textarea::placeholder {
+  color: #ccc;
 }

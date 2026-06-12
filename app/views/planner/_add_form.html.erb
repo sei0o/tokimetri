@@ -1,0 +1,8 @@
+<%= form_with url: planner_items_path, id: "list_#{list.id}_add_form",
+    data: { turbo_stream: true } do |f| %>
+  <%= f.hidden_field :planner_list_id, value: list.id %>
+  <%= f.hidden_field :item_type, value: "task" %>
+  <%= f.text_field :content, placeholder: "タスクを追加...",
+      autocomplete: "off", name: "planner_item[content]" %>
+  <%= f.submit "+ 追加" %>
+<% end %>
