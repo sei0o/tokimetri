@@ -1,23 +1,16 @@
 <style>
-  #pages {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  #pages li {
-    display: inline;
-    margin-right: 10px;
-  }
-
   #calendar {
     max-width: 600px;
-    margin: 20px auto;
+    margin: 0 auto;
   }
 
-  #calendar h3 {
-    margin: 0;
-    margin-bottom: 10px;
+  #calendar header {
+    align-items: center;
+    text-align: center;
+  }
+
+  #calendar h2 {
+    display: inline;
   }
 
   .calendar-grid {
@@ -35,50 +28,49 @@
     display: block;
     padding: 5px;
     text-decoration: none;
-    color: black;
   }
-  
+
   .calendar-day a:hover {
     text-decoration: underline;
   }
 
   .calendar-day a.exists {
-    color:rgb(38, 107, 181);
+    color: rgb(38, 107, 181);
     font-weight: bold;
   }
-  
+
   .calendar-day a.nonexist {
     color: #888;
   }
 </style>
 <div id="calendar">
-  <% @pages.group_by { |page| page.date.beginning_of_month }.each do |month, pages| %>
-    <h3><%= month.strftime("%Y/%m") %></h3>
-    <div class="calendar-grid">
-      <% %w(Sun Mon Tue Wed Thu Fri Sat).each do |day_name| %>
-      <div class="calendar-day"><strong><%= day_name %></strong></div>
+  <header>
+    <a href="<%= pages_month_path((@month - 1.month).strftime('%Y-%m')) %>">◀</a>
+    <h2>
+      <%= @month.strftime("%Y/%m") %>
+    </h2>
+    <a href="<%= pages_month_path((@month + 1.month).strftime('%Y-%m')) %>">▶</a>
+  </header>
+  <div class="calendar-grid">
+    <% %w(Sun Mon Tue Wed Thu Fri Sat).each do |day_name| %>
+      <div class="calendar-day"><strong>
+          <%= day_name %>
+        </strong></div>
       <% end %>
-    </div>
-    <div class="calendar-grid">
-      <% first_day = Date.new(month.year, month.month, 1) %>
-      <% first_day_wday = Date.new(month.year, month.month, 1).wday %>
-      <% first_day_wday.downto(1) do |k| %>
-        <div class="calendar-day">
-          <% d = first_day - k.days %>
-          <a href="/day/<%= d.strftime("%Y%m%d") %>" class="nonexist"><%= d.day %></a>
-        </div>
-      <% end %>
-      <% (1..Time.days_in_month(month.month, month.year)).each do |day| %>
-        <% date = Date.new(month.year, month.month, day) %>
-        <% page = pages.find { |p| p.date == date } %>
-        <div class="calendar-day">
-          <% if page %>
-            <a href="/day/<%= date.strftime("%Y%m%d") %>" class="exists"><%= day %></a>
-          <% else %>
-            <a href="/day/<%= date.strftime("%Y%m%d") %>" class="nonexist"><%= day %></a>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  <% end %>
+  </div>
+  <div class="calendar-grid">
+    <% first_day_wday = @month.wday %>
+    <% first_day_wday.downto(1) do |k| %>
+      <div class="calendar-day"></div>
+    <% end %>
+    <% (1..Time.days_in_month(@month.month, @month.year)).each do |day| %>
+        <% date=Date.new(@month.year, @month.month, day) %>
+          <% page=@pages.find { |p| p.date==date } %>
+            <div class="calendar-day">
+              <a href="/day/<%= date.strftime('%Y%m%d') %>" class="<%= page ? 'exists' : 'nonexist' %>">
+                <%= day %>
+              </a>
+            </div>
+            <% end %>
+  </div>
 </div>

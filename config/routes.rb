@@ -19,7 +19,8 @@ Rails.application.routes.draw do
   post "/day/:date/analyze", to: "pages#analyze", as: :analyze_date_page
 
   # その他のルート
-  resources :pages, only: [ :index ]
+  get "/pages", to: "pages#index", as: :pages
+  get "/pages/:month", to: "pages#index", as: :pages_month
   get "/search", to: "pages#search", as: :search
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about

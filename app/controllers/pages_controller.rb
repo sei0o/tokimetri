@@ -4,7 +4,8 @@ class PagesController < ApplicationController
   before_action :set_navigation_pages, only: [ :show ]
 
   def index
-    @pages = Page.all
+    @month = params[:month].present? ? Date.parse("#{params[:month]}-01") : Date.today.beginning_of_month
+    @pages = Page.where(date: @month.beginning_of_month..@month.end_of_month)
   end
 
   def today
