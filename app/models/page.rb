@@ -68,6 +68,7 @@ class Page < ApplicationRecord
     end
 
     merge_sleep_records
+    add_sleep_if_missing
   end
 
   def merge_sleep_records
@@ -84,6 +85,19 @@ class Page < ApplicationRecord
     else
       true
     end
+  end
+
+  def add_sleep_if_missing
+    last_record = records.order(:start_time, :end_time).last
+    return unless last_record
+    return if last_record.category == "睡眠"
+
+    records.create(
+      start_time: last_record.end_time || last_record.start_time,
+      end_time: nil,
+      what: "就寝",
+      category: "睡眠"
+    )
   end
 
   def category_durations_minutes
