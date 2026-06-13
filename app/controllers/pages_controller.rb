@@ -30,6 +30,7 @@ class PagesController < ApplicationController
   end
 
   def search
+    @saved_searches = SavedSearch.order(:query)
     @categories = Setting.instance.categories
     if params[:q].present?
       @records = Record.includes(:page)

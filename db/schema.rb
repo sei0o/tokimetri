@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_13_123950) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_13_133407) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -92,6 +92,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_13_123950) do
     t.index ["page_id"], name: "index_records_on_page_id"
   end
 
+  create_table "saved_searches", force: :cascade do |t|
+    t.string "query"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   create_table "settings", force: :cascade do |t|
     t.text "prompt"
     t.string "categories"
@@ -99,8 +105,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_13_123950) do
     t.datetime "updated_at", null: false
     t.string "timezone", default: "Tokyo"
     t.string "batch_id"
-    t.text "weather_json"
-    t.datetime "weather_fetched_at"
   end
 
   add_foreign_key "planner_items", "planner_lists"
