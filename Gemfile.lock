@@ -180,7 +180,7 @@ GEM
       racc (~> 1.4)
     nokogiri (1.19.0-x86_64-linux-musl)
       racc (~> 1.4)
-    openai (0.43.0)
+    openai (0.66.1)
       base64
       cgi
       connection_pool
@@ -353,7 +353,7 @@ DEPENDENCIES
   image_processing (~> 1.2)
   importmap-rails
   jbuilder
-  openai (~> 0.43.0)
+  openai (~> 0.66.1)
   puma (>= 5.0)
   rails (~> 8.0.0, >= 8.0.0)
   rubocop-rails-omakase
