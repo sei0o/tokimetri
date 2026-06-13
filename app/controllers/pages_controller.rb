@@ -224,7 +224,7 @@ class PagesController < ApplicationController
   end
 
   def page_params
-    params.require(:page).permit(:date, :content,
+    params.require(:page).permit(:date, :content, :note,
       records_attributes: [ :id, :start_time, :end_time, :what, :category, :_destroy ])
   end
 end

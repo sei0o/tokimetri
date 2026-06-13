@@ -1,0 +1,5 @@
+class AddNoteToPagesNote < ActiveRecord::Migration[8.0]
+  def change
+    add_column :pages, :note, :text
+  end
+end

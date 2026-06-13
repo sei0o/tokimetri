@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_06_12_102221) do
+ActiveRecord::Schema[8.0].define(version: 2026_06_13_110710) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -56,6 +56,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_12_102221) do
     t.datetime "updated_at", null: false
     t.text "analyzed_plan"
     t.text "plan"
+    t.text "note"
   end
 
   create_table "planner_items", force: :cascade do |t|
@@ -99,8 +100,6 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_12_102221) do
     t.string "timezone", default: "Tokyo"
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
-  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "planner_items", "planner_lists"
   add_foreign_key "records", "pages"
 end
