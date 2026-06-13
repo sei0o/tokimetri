@@ -91,7 +91,13 @@
 </script>
 
 <%= form_with url: analyze_all_path, method: :post do %>
-  <%= submit_tag '未分析ページを全て分析' %>
+  <%= submit_tag '未分析ページをバッチ送信' %>
+<% end %>
+<% if Setting.instance.batch_id.present? %>
+  <div>バッチ処理中: <%= Setting.instance.batch_id %></div>
+  <%= form_with url: check_batch_path, method: :post do %>
+    <%= submit_tag 'バッチ結果を取得' %>
+  <% end %>
 <% end %>
 
 <div>

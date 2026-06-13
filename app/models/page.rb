@@ -54,19 +54,39 @@ class Page < ApplicationRecord
     )
 
     parsed = chat_completion.choices.first.message.parsed
+    apply_parsed_records(parsed.records)
+  end
 
-    # add records
+  def to_batch_request
+    {
+      custom_id: "page-#{id}",
+      method: "POST",
+      url: "/v1/chat/completions",
+      body: {
+        model: "gpt-5.2",
+        temperature: 0,
+        messages: [ { role: "user", content: prompt } ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "ActivityRecords",
+            strict: true,
+            schema: ActivityRecords.to_json_schema
+          }
+        }
+      }
+    }
+  end
+
+  def apply_parsed_records(records_data)
     self.records.destroy_all
-
-    parsed.records.each do |record|
-      self.records.create(
-        start_time: record.start,
-        end_time: record.end,
-        what: record.what,
-        category: record.category
-      )
+    records_data.each do |record|
+      start_val = record.respond_to?(:start) ? record.start : record["start"]
+      end_val   = record.respond_to?(:end)   ? record.end   : record["end"]
+      what_val  = record.respond_to?(:what)  ? record.what  : record["what"]
+      cat_val   = record.respond_to?(:category) ? record.category : record["category"]
+      self.records.create(start_time: start_val, end_time: end_val, what: what_val, category: cat_val)
     end
-
     merge_sleep_records
     add_sleep_if_missing
   end

@@ -3,13 +3,18 @@ class WeatherService
   LAT = 35.732
   LON = 139.74
   CACHE_KEY = "weather_data"
-  CACHE_TTL = 30.minutes
+  CACHE_TTL = 8.hours
 
   def self.rain?(hours_ahead: 12)
     new.rain?(hours_ahead: hours_ahead)
   end
 
   def self.summary
+    new.summary
+  end
+
+  def self.prefetch
+    Rails.cache.delete(CACHE_KEY)
     new.summary
   end
 

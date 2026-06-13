@@ -33,6 +33,7 @@ Rails.application.routes.draw do
   get "/review/:date", to: "pages#review", as: :review_date
   post "/analyze_week", to: "pages#analyze_week"
   post "/analyze_all", to: "pages#analyze_all", as: :analyze_all
+  post "/check_batch", to: "pages#check_batch", as: :check_batch
 
  get "/settings", to: "settings#edit", as: :settings
   patch "/settings", to: "settings#update", as: :update_settings

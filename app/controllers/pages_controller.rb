@@ -144,13 +144,68 @@ class PagesController < ApplicationController
     pages = Page.left_outer_joins(:records)
                 .where.not(content: [ nil, "" ])
                 .where(records: { id: nil })
-    count = pages.count
 
-    pages.each do |page|
-      page.analyze_and_update
+    if pages.none?
+      redirect_to review_path, notice: "未分析ページはありません"
+      return
     end
 
-    redirect_to review_path, notice: "#{count}件のページを分析しました"
+    jsonl = pages.map { |p| p.to_batch_request.to_json }.join("\n")
+
+    client = OpenAI::Client.new(api_key: Rails.application.credentials.openai.api_key)
+
+    file = client.files.create(
+      file: StringIO.new(jsonl),
+      filename: "analyze_batch_#{Date.today}.jsonl",
+      purpose: "batch"
+    )
+
+    batch = client.batches.create(
+      input_file_id: file.id,
+      endpoint: "/v1/chat/completions",
+      completion_window: "24h"
+    )
+
+    Setting.instance.update!(batch_id: batch.id)
+
+    redirect_to review_path, notice: "#{pages.count}件をバッチ送信しました（ID: #{batch.id}）。完了後に「バッチ結果を取得」してください。"
+  end
+
+  def check_batch
+    setting = Setting.instance
+    unless setting.batch_id.present?
+      redirect_to review_path, alert: "バッチIDがありません"
+      return
+    end
+
+    client = OpenAI::Client.new(api_key: Rails.application.credentials.openai.api_key)
+    batch = client.batches.retrieve(setting.batch_id)
+
+    unless batch.status == "completed"
+      redirect_to review_path, notice: "バッチはまだ処理中です（status: #{batch.status}）"
+      return
+    end
+
+    output = client.files.content(batch.output_file_id)
+    count = 0
+
+    output.each_line do |line|
+      result = JSON.parse(line)
+      next unless result["response"]["status_code"] == 200
+
+      page_id = result["custom_id"].delete_prefix("page-").to_i
+      page = Page.find_by(id: page_id)
+      next unless page
+
+      records_data = JSON.parse(result["response"]["body"]["choices"][0]["message"]["content"])["records"]
+      page.apply_parsed_records(
+        records_data.map { |r| OpenStruct.new(r) }
+      )
+      count += 1
+    end
+
+    setting.update!(batch_id: nil)
+    redirect_to review_path, notice: "#{count}件のページを更新しました"
   end
 
   def review

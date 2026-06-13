@@ -39,3 +39,4 @@ vendor/
 /config/credentials/production.key
 
 copy_db.sh
+docs/
