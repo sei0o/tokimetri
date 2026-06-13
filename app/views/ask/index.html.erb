@@ -1,0 +1,17 @@
+<%= form_with url: ask_path, method: :post, data: { turbo: false } do |f| %>
+  <%= f.text_area :question, value: @question, rows: 3, style: "width: 100%; font: inherit; padding: 0.5rem; box-sizing: border-box;", placeholder: "例: 絵を描くのに大体どれくらいかかってる？" %>
+  <%= f.submit "聞く" %>
+<% end %>
+
+<% if @reply %>
+  <hr>
+  <%= @reply.html_safe %>
+  <% if @sqls&.any? %>
+    <details style="margin-top: 1rem; font-size: 0.8rem; color: #888;">
+      <summary>SQL</summary>
+      <% @sqls.each do |sql| %>
+        <pre style="margin: 0.5rem 0; white-space: pre-wrap;"><%= sql %></pre>
+      <% end %>
+    </details>
+  <% end %>
+<% end %>

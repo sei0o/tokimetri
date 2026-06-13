@@ -52,7 +52,7 @@
               </td>
             </tr>
           <% end %>
-          <%= render partial: "record_row", locals: { record: record, categories: @categories } %>
+          <%= render partial: "record_row", locals: { record: record, categories: @categories, cap_height: false } %>
         <% end %>
       </tbody>
     </table>

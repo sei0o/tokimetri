@@ -21,6 +21,8 @@ Rails.application.routes.draw do
   # その他のルート
   get "/pages", to: "pages#index", as: :pages
   get "/pages/:month", to: "pages#index", as: :pages_month
+  get "/ask", to: "ask#index", as: :ask
+  post "/ask", to: "ask#create"
   get "/search", to: "pages#search", as: :search
   get "/view", to: "pages#view", as: :view
   get "/about", to: "pages#about", as: :about
