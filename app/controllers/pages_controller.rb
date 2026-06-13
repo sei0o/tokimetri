@@ -79,6 +79,12 @@ class PagesController < ApplicationController
       end
 
       @query = params[:q]
+
+      if @records.any?
+        @heatmap_data = @records
+          .group_by { |r| r.page.date }
+          .transform_values { |recs| recs.sum { |r| (r.duration_minutes || 0).to_f / 60 } }
+      end
     else
       @records = []
     end

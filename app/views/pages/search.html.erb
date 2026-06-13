@@ -29,6 +29,48 @@
     </div>
   <% end %>
   
+  <% if @heatmap_data&.any? %>
+    <%
+      cell = 13
+      pad_left = 22
+      pad_top = 18
+      start_date = @heatmap_data.keys.min
+      end_date   = @heatmap_data.keys.max
+      start_sun  = start_date - start_date.wday
+      end_sat    = end_date + (6 - end_date.wday)
+      weeks      = ((end_sat - start_sun).to_i / 7) + 1
+      max_hours  = @heatmap_data.values.max
+      svg_w = pad_left + weeks * cell
+      svg_h = pad_top + 7 * cell
+    %>
+    <svg width="<%= svg_w %>" height="<%= svg_h %>" style="display:block; margin: 1rem 0; overflow: visible;">
+      <% prev_month = nil %>
+      <% (0...weeks).each do |w| %>
+        <% d = start_sun + w * 7 %>
+        <% if d.month != prev_month %>
+          <% prev_month = d.month %>
+          <text x="<%= pad_left + w * cell %>" y="<%= pad_top - 5 %>" font-size="9" fill="#888"><%= d.strftime("%-m月") %></text>
+        <% end %>
+      <% end %>
+      <% (0...weeks).each do |w| %>
+        <% (0...7).each do |d| %>
+          <% date  = start_sun + (w * 7 + d).days %>
+          <% hours = @heatmap_data[date] || 0 %>
+          <% cx = pad_left + w * cell + cell / 2 %>
+          <% cy = pad_top  + d * cell + cell / 2 %>
+          <% if hours > 0 %>
+            <% r = (Math.sqrt(hours / max_hours) * 5.5).round(1).clamp(1.0, 5.5) %>
+            <circle cx="<%= cx %>" cy="<%= cy %>" r="<%= r %>" fill="#333">
+              <title><%= date.strftime("%Y-%m-%d") %>: <%= hours.round(1) %>h</title>
+            </circle>
+          <% else %>
+            <circle cx="<%= cx %>" cy="<%= cy %>" r="1" fill="#ddd" />
+          <% end %>
+        <% end %>
+      <% end %>
+    </svg>
+  <% end %>
+
   <% if @records.any? %>
     <table>
       <thead>
