@@ -21,7 +21,7 @@
   wake_time = record.page.wake_time
   wake_offset_minutes = wake_time ? (wake_time.hour * 60 + wake_time.min - 8 * 60) : 0
 %>
-<tr class="record" style="height: <%= [1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max %>rem; background-color: <%= hex_to_pastel(categories[record.category]) %>;" data-action="click->record-selection#toggleRow">
+<tr class="record" style="height: <%= cap_height ? '6rem' : "#{[1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max}rem" %>; background-color: <%= hex_to_pastel(categories[record.category]) %>;" data-action="click->record-selection#toggleRow">
   <td>
     <input type="checkbox" 
            data-record-selection-target="checkbox" 

@@ -99,6 +99,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_06_12_102221) do
     t.string "timezone", default: "Tokyo"
   end
 
+  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "planner_items", "planner_lists"
   add_foreign_key "records", "pages"
 end

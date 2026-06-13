@@ -22,7 +22,10 @@ export default class extends Controller {
 
     const pageDate = new Date(display.closest("form").dataset.pageDate + "T00:00:00")
     pageDate.setDate(pageDate.getDate() + offsetDays)
-    const dateStr = pageDate.toISOString().substring(0, 10)
+    const y = pageDate.getFullYear()
+    const m = String(pageDate.getMonth() + 1).padStart(2, "0")
+    const d = String(pageDate.getDate()).padStart(2, "0")
+    const dateStr = `${y}-${m}-${d}`
     hidden.value = `${dateStr}T${String(hour).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`
   }
 

@@ -15,7 +15,7 @@ class Page < ApplicationRecord
   validates :content, presence: true
 
   has_many :records, dependent: :destroy
-  accepts_nested_attributes_for :records, allow_destroy: true
+  accepts_nested_attributes_for :records, allow_destroy: true, reject_if: :all_blank
 
   def wake_time
     if last = records.where(category: "睡眠").order(:end_time).last

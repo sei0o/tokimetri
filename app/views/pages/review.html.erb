@@ -46,6 +46,32 @@
     margin-bottom: 0.5rem;
     font-size: 1.2rem;
   }
+
+  .daily-chart {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chart-bar {
+    height: 180px;
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .chart-label {
+    text-align: center;
+    font-size: 0.75rem;
+    padding-top: 4px;
+    color: #555;
+  }
 </style>
 
 <script>
@@ -140,6 +166,32 @@
     </div>
   <% end %>
   
+  <% chart_max = [@pages_thisweek.map { |p| p.category_durations_minutes.sum { |_, m| m } }.max || 0, 1].max %>
+  <% category_order = @categories.keys %>
+  <div class="daily-chart">
+    <% (@startdate..@enddate).each do |day| %>
+      <% page = @pages_thisweek.find { |p| p.date == day } %>
+      <div class="chart-col">
+        <div class="chart-bar">
+          <% if page %>
+            <% durations = page.category_durations_minutes.to_h %>
+            <% category_order.each do |category| %>
+              <% minutes = durations[category].to_i %>
+              <% next if minutes == 0 %>
+              <div style="height: <%= (minutes.to_f / chart_max * 180).round %>px; background-color: <%= @categories[category] %>;" title="<%= category %>: <%= (minutes/60).to_i %>h<%= (minutes%60).to_i %>m"></div>
+            <% end %>
+          <% end %>
+        </div>
+        <div class="chart-label">
+          <%= day.strftime("%-m/%-d %a") %>
+          <% unless page %>
+            <br><span style="color: #bbb; font-size: 0.65rem;">(no record)</span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
   <% @pages_thisweek.each do |page| %>
     <div class="day-section">
       <div class="day-header">

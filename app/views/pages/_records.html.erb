@@ -47,8 +47,10 @@
         </tr>
       </thead>
       <tbody>
+        <% last_record = page.records.last %>
         <% page.records.each do |record| %>
-          <%= render partial: "record_row", locals: { record: record, categories: @categories } %>
+          <% cap_height = record == last_record && record.category == "睡眠" %>
+          <%= render partial: "record_row", locals: { record: record, categories: @categories, cap_height: cap_height } %>
         <% end %>
       </tbody>
     </table>

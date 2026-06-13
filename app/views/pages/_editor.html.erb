@@ -116,12 +116,4 @@
     <% end %>
   </div>
 
-  <!-- show last week's content -->
-  <% if @lastweek_page && @lastweek_page.content.present? %>
-    <div>
-      <h2>last week: <%= @lastweek_page.date.strftime("%Y/%m/%d %a") %></h2>
-      <%= @lastweek_page.content.gsub("\n", "<br>").html_safe %>
-    </div>
-  <% end %>
-
 </div>
