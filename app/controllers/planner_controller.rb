@@ -5,9 +5,13 @@ class PlannerController < ApplicationController
   def bath; end
   def meal; end
 
+  def weather
+    summary = WeatherService.summary
+    render json: summary
+  end
+
   def everyday
-    @weather = WeatherService.summary
-    @context = { date: Date.current, rain: @weather&.dig(:rain) || false }
+    @context = { date: Date.current, rain: false }
     @lists = %w[morning leave_home evening].filter_map do |slug|
       list = PlannerList.find_by(slug: slug)
       next unless list

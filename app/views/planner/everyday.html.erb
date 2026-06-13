@@ -1,14 +1,7 @@
 <div class="planner">
   <div class="panel">
     <h1>毎日のタスク</h1>
-    <% if @weather %>
-      <div class="weather-note show">
-        <%= @weather[:rain] ? "雨が降りそうです" : "天気は大きく崩れなさそう" %>
-        <% if @weather[:max_temp] %>
-          ／最高 <%= @weather[:max_temp] %>°C・最低 <%= @weather[:min_temp] %>°C
-        <% end %>
-      </div>
-    <% end %>
+    <div id="weather-note"></div>
   </div>
 
   <% @lists.each do |section| %>
@@ -34,3 +27,14 @@
     </div>
   <% end %>
 </div>
+
+<script>
+  fetch("/planner/weather")
+    .then(r => r.json())
+    .then(w => {
+      if (!w) return;
+      const text = (w.rain ? "雨が降りそうです" : "天気は大きく崩れなさそう")
+        + (w.max_temp != null ? ` ／最高 ${w.max_temp}°C・最低 ${w.min_temp}°C` : "");
+      document.getElementById("weather-note").textContent = text;
+    });
+</script>

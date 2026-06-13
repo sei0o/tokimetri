@@ -43,6 +43,7 @@ Rails.application.routes.draw do
   get "/planner/meet", to: "planner#meet", as: :planner_meet
   get "/planner/bath", to: "planner#bath", as: :planner_bath
   get "/planner/everyday", to: "planner#everyday", as: :planner_everyday
+  get "/planner/weather", to: "planner#weather", as: :planner_weather
   get "/planner/today", to: "planner#today", as: :planner_today
   get "/planner/meal", to: "planner#meal", as: :planner_meal
 
