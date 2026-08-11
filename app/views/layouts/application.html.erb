@@ -35,7 +35,7 @@
             <li><a href="/planner">Planner</a></li>
             <li><a href="/settings">Settings</a></li>
             <% if authenticated? %>
-              <li><%= link_to "Logout", session_path, method: :delete %></li>
+              <li><%= link_to "Logout", session_path, data: { turbo_method: :delete } %></li>
             <% end %>
           </ul>
         </nav>
