@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  resource :session
+  resources :passwords, param: :token
   get "settings/edit"
   get "settings/update"
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
@@ -51,5 +53,5 @@ Rails.application.routes.draw do
   resources :planner_items, only: %i[create update destroy]
   resources :planner_lists, only: %i[update]
 
-  root "pages#index"
+  root "pages#today"
 end

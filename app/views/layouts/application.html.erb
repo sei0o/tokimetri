@@ -24,15 +24,19 @@
         <nav id="pagenav">
           <ul>
             <li id="service"><a href="/">tokimetri</a></li>
-            <li><a href="/about">About</a></li>
-            <li><a href="/today">Today</a></li>
-            <li><a href="/view">Banner</a></li>
+            <!--<li><a href="/about">About</a></li>-->
+            <!--<li><a href="/today">Today</a></li>-->
+            <li><a href="/pages">Calendar</a></li>
+            <!--<li><a href="/view">Banner</a></li>-->
             <li><a href="/review">Review</a></li>
             <li><a href="/search">Search</a></li>
             <li><a href="/ask">Ask</a></li>
             <li><a href="/random">Random</a></li>
             <li><a href="/planner">Planner</a></li>
             <li><a href="/settings">Settings</a></li>
+            <% if authenticated? %>
+              <li><%= link_to "Logout", session_path, method: :delete %></li>
+            <% end %>
           </ul>
         </nav>
       </header>
