@@ -80,7 +80,7 @@
     let text = '<%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %>\n\n';
     
     pages.forEach(page => {
-      text += `=== ${page.date} ===\n${page.content}\n\n`;
+      text += `## ${page.date}\n${page.content}\n\n`;
     });
 
     navigator.clipboard.writeText(text).then(() => {
