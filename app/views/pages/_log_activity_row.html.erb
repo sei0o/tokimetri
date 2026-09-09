@@ -5,6 +5,7 @@
   <td class="time">
     <%= form.text_field :end_time, value: extended_time(form.object.end_time, @page.date), class: "end", placeholder: "25:00" %>
   </td>
+  <td class="duration"><%= minutes_to_hm(form.object.duration_minutes) if form.object.duration_minutes %></td>
   <td><%= form.text_field :what %></td>
   <td>
     <%= form.select :category, categories, { include_blank: true }, { data: { action: "change->log#colorize" } } %>

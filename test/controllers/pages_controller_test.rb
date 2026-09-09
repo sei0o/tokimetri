@@ -11,6 +11,14 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "経過時間が出る" do
+    page = Page.create!(date: @date)
+    page.records.create!(start_time: "2026-09-09 09:00", end_time: "2026-09-09 10:30", what: "研究", category: "研究")
+
+    get log_path(@date.strftime("%Y%m%d"))
+    assert_select "td.duration", text: "1:30"
+  end
+
   test "レコードとメモを作れる" do
     patch update_date_page_path(@date.strftime("%Y%m%d")), params: {
       from: "log",

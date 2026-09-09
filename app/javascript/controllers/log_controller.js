@@ -1,5 +1,12 @@
 import { Controller } from "@hotwired/stimulus"
 
+const toMinutes = (text) => {
+  const m = text.match(/^(-?\d+):(\d{2})$/)
+  return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null
+}
+
+const toHM = (minutes) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
+
 export default class extends Controller {
   static targets = ["rows", "row", "activityTemplate", "noteTemplate"]
 
@@ -19,11 +26,21 @@ export default class extends Controller {
       start.placeholder = prevEnd
       if (end?.value) prevEnd = end.value
 
+      this.showDuration(row, start.value || start.placeholder, end?.value)
       row.querySelectorAll("textarea").forEach(this.grow)
     }
 
     const last = this.rowTargets.at(-1)
     if (last && this.filled(last)) this.addRow(this.activityTemplateTarget)
+  }
+
+  showDuration(row, from, to) {
+    const cell = row.querySelector(".duration")
+    if (!cell) return
+
+    const start = toMinutes(from ?? "")
+    const end = toMinutes(to ?? "")
+    cell.textContent = start !== null && end !== null && end >= start ? toHM(end - start) : ""
   }
 
   filled(row) {
