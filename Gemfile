@@ -56,6 +56,9 @@ group :development do
 end
 
 group :test do
+  # minitest 6 は railties 8.0 のテストランナーと互換がない
+  gem "minitest", "~> 5.25"
+
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
