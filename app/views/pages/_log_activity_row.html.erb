@@ -1,0 +1,17 @@
+<tr data-log-target="row" style="background-color: <%= hex_to_pastel(@categories[form.object.category]) %>">
+  <td class="time">
+    <%= form.text_field :start_time, value: extended_time(form.object.start_time, @page.date), class: "start" %>
+  </td>
+  <td class="time">
+    <%= form.text_field :end_time, value: extended_time(form.object.end_time, @page.date), class: "end", placeholder: "25:00" %>
+  </td>
+  <td><%= form.text_field :what %></td>
+  <td>
+    <%= form.select :category, categories, { include_blank: true }, { data: { action: "change->log#colorize" } } %>
+  </td>
+  <td class="destroy">
+    <%= form.check_box :_destroy %>
+    <%= form.hidden_field :kind, value: "activity" %>
+    <%= form.hidden_field :id if form.object.persisted? %>
+  </td>
+</tr>

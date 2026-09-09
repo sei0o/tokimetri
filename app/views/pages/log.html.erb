@@ -1,0 +1,111 @@
+<style>
+  #dailynav {
+    text-align: center;
+  }
+
+  #dailynav h1 {
+    display: inline;
+    margin: 0;
+  }
+
+  #log {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #log th {
+    text-align: left;
+    font-weight: normal;
+    font-size: 0.9rem;
+    color: #999;
+  }
+
+  #log td {
+    padding: 2px 4px;
+  }
+
+  #log input, #log select, #log textarea {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    padding: 2px;
+  }
+
+  #log input:focus, #log select:focus, #log textarea:focus {
+    outline: 1px solid rgba(0, 0, 0, 0.3);
+  }
+
+  #log textarea {
+    resize: none;
+    overflow: hidden;
+  }
+
+  #log .time {
+    width: 4rem;
+  }
+
+  #log .destroy {
+    width: 1.5rem;
+  }
+
+  #log tr.note {
+    color: #666;
+  }
+</style>
+
+<nav id="dailynav">
+  <a href="/log/<%= @lastweek %>">▲</a>
+  <a href="/log/<%= @yesterday %>">◀</a>
+  <h1><%= @page.date.strftime("%Y/%m/%d %a") %></h1>
+  <a href="/log/<%= @tomorrow %>">▶</a>
+  <a href="/log/<%= @nextweek %>">▼</a>
+</nav>
+
+<%= link_to "テキストで書く", date_path(@page.date.strftime("%Y%m%d")) %>
+
+<% category_options = @categories.map { |cat, color| [ cat, cat, { data: { color: hex_to_pastel(color) } } ] } %>
+
+<%= form_with model: @page, url: update_date_page_path(@page.date.strftime("%Y%m%d")), method: :patch,
+      data: { controller: "log", action: "input->log#refresh change->log#refresh keydown->log#save" } do |f| %>
+  <%= hidden_field_tag :from, "log" %>
+
+  <table id="log">
+    <thead>
+      <tr>
+        <th>開始</th>
+        <th>終了</th>
+        <th>やったこと</th>
+        <th>カテゴリ</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody data-log-target="rows">
+      <%= f.fields_for :records, nil, include_id: false do |rf| %>
+        <%= render "log_#{rf.object.kind}_row", form: rf, categories: category_options %>
+      <% end %>
+
+      <%= f.fields_for :records, Array.new(3) { Record.new }, include_id: false do |rf| %>
+        <%= render "log_activity_row", form: rf, categories: category_options %>
+      <% end %>
+    </tbody>
+  </table>
+
+  <template data-log-target="activityTemplate">
+    <%= f.fields_for :records, Record.new, child_index: "NEW_RECORD" do |rf| %>
+      <%= render "log_activity_row", form: rf, categories: category_options %>
+    <% end %>
+  </template>
+
+  <template data-log-target="noteTemplate">
+    <%= f.fields_for :records, Record.new(kind: "note"), child_index: "NEW_RECORD" do |rf| %>
+      <%= render "log_note_row", form: rf, categories: category_options %>
+    <% end %>
+  </template>
+
+  <nav>
+    <%= f.submit "保存" %>
+    <button type="button" data-action="log#addNote">メモを追加</button>
+  </nav>
+<% end %>

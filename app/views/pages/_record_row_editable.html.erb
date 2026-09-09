@@ -3,12 +3,6 @@
   duration = record.duration_minutes
   bg_color = hex_to_pastel(@categories[record.category])
   category_options = @categories.map { |cat, color| [cat, cat, { data: { color: hex_to_pastel(color) } }] }
-
-  def extended_time(datetime, page_date)
-    return "" unless datetime
-    offset_hours = (datetime.to_date - page_date).to_i * 24 + datetime.hour
-    "#{offset_hours}:#{datetime.strftime('%M')}"
-  end
 %>
 <tr class="record record-editable"
     data-controller="record-editable"

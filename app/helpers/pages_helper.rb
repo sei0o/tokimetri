@@ -81,6 +81,14 @@ module PagesHelper
     }
   end
 
+  # ページの日付を基準に「25:30」のような 24 時超え表記へ直す
+  def extended_time(datetime, page_date)
+    return "" unless datetime
+
+    hours = (datetime.to_date - page_date).to_i * 24 + datetime.hour
+    "#{hours}:#{datetime.strftime("%M")}"
+  end
+
   def minutes_to_hm(minutes)
     hours = (minutes / 60).floor
     mins = (minutes % 60).round

@@ -1,0 +1,11 @@
+<tr class="note" data-log-target="row">
+  <td class="time">
+    <%= form.text_field :start_time, value: extended_time(form.object.start_time, @page.date), class: "start" %>
+  </td>
+  <td colspan="3"><%= form.text_area :what, rows: 1, placeholder: "メモ" %></td>
+  <td class="destroy">
+    <%= form.check_box :_destroy %>
+    <%= form.hidden_field :kind, value: "note" %>
+    <%= form.hidden_field :id if form.object.persisted? %>
+  </td>
+</tr>

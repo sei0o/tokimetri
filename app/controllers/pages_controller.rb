@@ -1,7 +1,7 @@
 class PagesController < ApplicationController
-  before_action :parse_and_set_date, only: [ :show, :create, :update, :destroy, :analyze ]
-  before_action :set_page, only: [ :show, :create, :update, :destroy, :analyze ]
-  before_action :set_navigation_pages, only: [ :show ]
+  before_action :parse_and_set_date, only: [ :show, :log, :create, :update, :destroy, :analyze ]
+  before_action :set_page, only: [ :show, :log, :create, :update, :destroy, :analyze ]
+  before_action :set_navigation_pages, only: [ :show, :log ]
 
   def index
     @month = params[:month].present? ? Date.parse("#{params[:month]}-01") : Date.today.beginning_of_month
@@ -114,6 +114,8 @@ class PagesController < ApplicationController
   def update
     if @page.update(page_params)
       @page.reconcile_sleep_boundaries!
+      return redirect_to log_path(@date.strftime("%Y%m%d")) if params[:from] == "log"
+
       respond_to do |format|
         format.html { redirect_to date_path(@date.strftime("%Y%m%d")) }
         format.turbo_stream {
@@ -131,6 +133,10 @@ class PagesController < ApplicationController
         }
       end
     end
+  end
+
+  def log
+    @categories = Setting.instance.categories
   end
 
   def analyze
@@ -288,7 +294,32 @@ class PagesController < ApplicationController
   end
 
   def page_params
-    params.require(:page).permit(:date, :content, :note,
-      records_attributes: [ :id, :start_time, :end_time, :what, :category, :_destroy ])
+    permitted = params.require(:page).permit(:date, :content, :note,
+      records_attributes: [ :id, :kind, :start_time, :end_time, :what, :category, :_destroy ])
+
+    prev_end = nil
+    permitted[:records_attributes]&.each_value do |attrs|
+      attrs[:start_time] = parse_time(attrs[:start_time])
+      attrs[:end_time] = parse_time(attrs[:end_time])
+
+      next if attrs[:_destroy] == "1"
+      next if attrs.except(:id, :kind, :_destroy).values.all?(&:blank?)
+
+      attrs[:start_time] ||= prev_end
+      prev_end = attrs[:end_time] if attrs[:kind] != "note" && attrs[:end_time]
+    end
+
+    permitted
+  end
+
+  # 「25:30」のような 24 時超えの表記をその日からのオフセットとして読む
+  def parse_time(value)
+    return nil if value.blank?
+
+    if m = value.match(/\A(-?\d+):(\d{2})\z/)
+      @date.in_time_zone + m[1].to_i.hours + m[2].to_i.minutes
+    else
+      value
+    end
   end
 end

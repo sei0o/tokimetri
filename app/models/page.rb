@@ -12,23 +12,23 @@ end
 class Page < ApplicationRecord
   # has_rich_text :content
   validates :date, presence: true
-  validates :content, presence: true
 
-  has_many :records, dependent: :destroy
-  accepts_nested_attributes_for :records, allow_destroy: true, reject_if: :all_blank
+  has_many :records, -> { order(:start_time, :id) }, dependent: :destroy
+  accepts_nested_attributes_for :records, allow_destroy: true,
+    reject_if: ->(attrs) { attrs.except("kind", "_destroy").values.all?(&:blank?) }
 
   def wake_time
-    if last = records.where(category: "睡眠").order(:end_time).last
+    if last = records.activities.where(category: "睡眠").order(:end_time).last
       return last.end_time
     end
 
     if yesterday_page = Page.find_by(date: date - 1.day)
-      if yesterday_last = yesterday_page.records.where(category: "睡眠").order(:end_time).last
+      if yesterday_last = yesterday_page.records.activities.where(category: "睡眠").order(:end_time).last
         return yesterday_last.end_time
       end
     end
 
-    records.first&.start_time
+    records.activities.first&.start_time
   end
 
   def self.average_wake_time(pages)
@@ -79,7 +79,7 @@ class Page < ApplicationRecord
   end
 
   def apply_parsed_records(records_data)
-    self.records.destroy_all
+    records.activities.destroy_all
     records_data.each do |record|
       start_val = record.respond_to?(:start) ? record.start : record["start"]
       end_val   = record.respond_to?(:end)   ? record.end   : record["end"]
@@ -99,7 +99,7 @@ class Page < ApplicationRecord
   end
 
   def add_sleep_if_missing
-    last_record = records.order(:start_time, :id).last
+    last_record = records.activities.last
     return unless last_record
     return if last_record.category == "睡眠"
 
@@ -114,7 +114,7 @@ class Page < ApplicationRecord
   def category_durations_minutes
     summary = Hash.new(0)
 
-    records.each do |record|
+    records.activities.each do |record|
       if dur = record.duration_minutes
         summary[record.category] += dur
       end
@@ -148,10 +148,10 @@ class Page < ApplicationRecord
     def close_sleep_boundary(earlier_page, later_page)
       return unless earlier_page && later_page
 
-      earlier_sleep = earlier_page.records.order(:start_time, :id).last
+      earlier_sleep = earlier_page.records.activities.last
       return unless earlier_sleep && earlier_sleep.category == "睡眠" && earlier_sleep.end_time.nil?
 
-      later_first = later_page.records.order(:start_time, :id).first
+      later_first = later_page.records.activities.first
       return unless later_first
 
       boundary_time = later_first.start_time || later_first.end_time
