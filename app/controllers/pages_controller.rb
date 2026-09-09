@@ -103,6 +103,7 @@ class PagesController < ApplicationController
   def create
     @page.assign_attributes(page_params)
     if @page.save
+      @page.reconcile_sleep_boundaries!
       redirect_to date_path(@date.strftime("%Y%m%d"))
     else
       set_navigation_pages
@@ -112,6 +113,7 @@ class PagesController < ApplicationController
 
   def update
     if @page.update(page_params)
+      @page.reconcile_sleep_boundaries!
       respond_to do |format|
         format.html { redirect_to date_path(@date.strftime("%Y%m%d")) }
         format.turbo_stream {
