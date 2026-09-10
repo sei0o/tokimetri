@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   # 日付ベースのルート（メイン）
   get "/day/:date", to: "pages#show", as: :date
   get "/log/:date", to: "pages#log", as: :log
+  get "/category", to: "categories#show", as: :category
   post "/day/:date", to: "pages#create", as: :create_date_page
   patch "/day/:date", to: "pages#update", as: :update_date_page
   delete "/day/:date", to: "pages#destroy", as: :destroy_date_page

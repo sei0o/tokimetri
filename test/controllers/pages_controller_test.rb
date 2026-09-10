@@ -78,6 +78,29 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal Time.zone.local(2026, 9, 9, 10, 0), sleep_record.start_time
   end
 
+  test "過去の記録からカテゴリを推測する" do
+    page = Page.create!(date: @date - 1.day)
+    3.times { page.records.create!(what: "ネットサーフィン", category: "娯楽/だらだら") }
+    page.records.create!(kind: "note", what: "床屋", category: "生活")
+
+    assert_equal "娯楽/だらだら", Record.guess_category("ネットサーフィン")
+    assert_equal "娯楽/だらだら", Record.guess_category("ネットサーフィンする")
+    assert_nil Record.guess_category("床屋"), "メモは学習元にしない"
+    assert_nil Record.guess_category("まったく違うこと")
+    assert_nil Record.guess_category("")
+  end
+
+  test "カテゴリの推測を返す" do
+    page = Page.create!(date: @date - 1.day)
+    page.records.create!(what: "研究", category: "研究")
+
+    get category_path(what: "研究")
+    assert_equal "研究", response.body
+
+    get category_path(what: "まったく違うこと")
+    assert_equal "", response.body
+  end
+
   test "analyze はメモを消さない" do
     page = Page.create!(date: @date, content: "9:00まで研究")
     page.records.create!(kind: "note", start_time: "2026-09-09 10:30", what: "残るメモ")
