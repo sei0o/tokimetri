@@ -84,7 +84,8 @@
 <% category_options = @categories.map { |cat, color| [ cat, cat, { data: { color: hex_to_pastel(color) } } ] } %>
 
 <%= form_with model: @page, url: update_date_page_path(@page.date.strftime("%Y%m%d")), method: :patch,
-      data: { controller: "log", action: "input->log#refresh change->log#refresh keydown->log#save" } do |f| %>
+      data: { controller: "log", log_date_value: @page.date.iso8601,
+              action: "input->log#refresh change->log#refresh keydown->log#key" } do |f| %>
   <%= hidden_field_tag :from, "log" %>
 
   <table id="log">
@@ -122,7 +123,8 @@
   </template>
 
   <nav>
-    <%= f.submit "保存" %>
+    <button type="button" data-action="log#finishRow">次の行へ</button>
     <button type="button" data-action="log#addNote">メモを追加</button>
+    <%= f.submit "保存" %>
   </nav>
 <% end %>

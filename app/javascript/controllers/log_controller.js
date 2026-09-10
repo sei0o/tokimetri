@@ -9,6 +9,7 @@ const toHM = (minutes) => `${Math.floor(minutes / 60)}:${String(minutes % 60).pa
 
 export default class extends Controller {
   static targets = ["rows", "row", "activityTemplate", "noteTemplate"]
+  static values = { date: String }
 
   connect() {
     this.index = Date.now()
@@ -66,10 +67,49 @@ export default class extends Controller {
     event.target.closest("tr").style.backgroundColor = event.target.selectedOptions[0].dataset.color || ""
   }
 
-  save(event) {
+  // いま終わったことにして次の行へ移る
+  finishRow() {
+    const current = this.rowTargets.findLast(row => this.filled(row))
+    if (!current) return
+
+    const end = current.querySelector(".end")
+    if (end && !end.value) end.value = this.now()
+    this.refresh()
+
+    const next = this.rowTargets[this.rowTargets.indexOf(current) + 1]
+    next?.querySelector('[name$="[what]"]')?.focus()
+  }
+
+  now() {
+    const page = new Date(`${this.dateValue}T00:00:00`)
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const days = Math.round((midnight - page) / 86400000)
+
+    return `${days * 24 + now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`
+  }
+
+  key(event) {
     if ((event.metaKey || event.ctrlKey) && event.key === "s") {
       event.preventDefault()
       this.element.requestSubmit()
+      return
     }
+
+    // Enter は同じ列のまま一行下へ。メモの中では改行させる
+    if (event.key === "Enter" && event.target.tagName !== "TEXTAREA") {
+      event.preventDefault()
+      this.focusBelow(event.target)
+    }
+  }
+
+  focusBelow(field) {
+    const row = field.closest("tr")
+    const next = this.rowTargets[this.rowTargets.indexOf(row) + 1]
+    if (!next) return
+
+    const column = field.name.match(/\[(\w+)\]$/)?.[1]
+    const target = next.querySelector(`[name$="[${column}]"]`) ?? next.querySelector("input[type=text], textarea")
+    target?.focus()
   }
 }

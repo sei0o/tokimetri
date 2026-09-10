@@ -3,7 +3,7 @@
     <%= form.text_field :start_time, value: extended_time(form.object.start_time, @page.date), class: "start" %>
   </td>
   <td class="time">
-    <%= form.text_field :end_time, value: extended_time(form.object.end_time, @page.date), class: "end", placeholder: "25:00" %>
+    <%= form.text_field :end_time, value: extended_time(form.object.end_time, @page.date), class: "end" %>
   </td>
   <td class="duration"><%= minutes_to_hm(form.object.duration_minutes) if form.object.duration_minutes %></td>
   <td><%= form.text_field :what %></td>
