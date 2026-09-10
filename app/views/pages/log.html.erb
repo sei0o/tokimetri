@@ -58,6 +58,17 @@
   #log tr.note {
     color: #666;
   }
+
+  #log tr:has(.destroy input:checked) {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+
+  #log tr:has(.destroy input:checked) input,
+  #log tr:has(.destroy input:checked) select,
+  #log tr:has(.destroy input:checked) textarea {
+    text-decoration: line-through;
+  }
 </style>
 
 <nav id="dailynav">
