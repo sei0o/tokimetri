@@ -59,8 +59,12 @@ export default class extends Controller {
   }
 
   addRow(template) {
-    this.rowsTarget.insertAdjacentHTML("beforeend", template.innerHTML.replaceAll("NEW_RECORD", this.index++))
+    this.rowsTarget.insertAdjacentHTML("beforeend", this.rowHTML(template))
     this.refresh()
+  }
+
+  rowHTML(template) {
+    return template.innerHTML.replaceAll("NEW_RECORD", this.index++)
   }
 
   colorize(event) {
@@ -96,11 +100,26 @@ export default class extends Controller {
       return
     }
 
-    // Enter は同じ列のまま一行下へ。メモの中では改行させる
-    if (event.key === "Enter" && event.target.tagName !== "TEXTAREA") {
+    if (event.key !== "Enter") return
+
+    // 日本語入力の変換確定の Enter は拾わない
+    if (event.isComposing || event.keyCode === 229) return
+
+    if (event.shiftKey) {
+      event.preventDefault()
+      this.insertBelow(event.target)
+    } else if (event.target.tagName !== "TEXTAREA") {
+      // メモの中では改行させる
       event.preventDefault()
       this.focusBelow(event.target)
     }
+  }
+
+  insertBelow(field) {
+    const row = field.closest("tr")
+    row.insertAdjacentHTML("afterend", this.rowHTML(this.activityTemplateTarget))
+    this.refresh()
+    this.focusBelow(field)
   }
 
   focusBelow(field) {
