@@ -7,6 +7,9 @@ const toMinutes = (text) => {
 
 const toHM = (minutes) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
 
+const atFirstLine = (el) => !el.value.slice(0, el.selectionStart).includes("\n")
+const atLastLine = (el) => !el.value.slice(el.selectionEnd).includes("\n")
+
 export default class extends Controller {
   static targets = ["rows", "row", "activityTemplate", "noteTemplate"]
   static values = { date: String }
@@ -124,35 +127,53 @@ export default class extends Controller {
       return
     }
 
-    if (event.key !== "Enter") return
-
-    // 日本語入力の変換確定の Enter は拾わない
+    // 日本語入力の変換中は、確定の Enter も候補を選ぶ矢印も拾わない
     if (event.isComposing || event.keyCode === 229) return
 
-    if (event.shiftKey) {
-      event.preventDefault()
-      this.insertBelow(event.target)
-    } else if (event.target.tagName !== "TEXTAREA") {
-      // メモの中では改行させる
-      event.preventDefault()
-      this.focusBelow(event.target)
+    if (event.key === "Enter") {
+      if (event.shiftKey) {
+        event.preventDefault()
+        this.insertBelow(event.target)
+      } else if (event.target.tagName !== "TEXTAREA") {
+        // メモの中では改行させる
+        event.preventDefault()
+        this.focusRow(event.target, 1)
+      }
+      return
     }
+
+    const offset = { ArrowDown: 1, ArrowUp: -1 }[event.key]
+    if (!offset) return
+    if (!this.leavesField(event.target, offset)) return
+
+    event.preventDefault()
+    this.focusRow(event.target, offset)
+  }
+
+  // select は上下で選択肢を変えるのが当たり前なので任せる。
+  // メモは複数行あるので、端の行にいるときだけ外に出る
+  leavesField(field, offset) {
+    if (field.tagName === "SELECT") return false
+    if (field.tagName !== "TEXTAREA") return true
+
+    return offset > 0 ? atLastLine(field) : atFirstLine(field)
   }
 
   insertBelow(field) {
     const row = field.closest("tr")
     row.insertAdjacentHTML("afterend", this.rowHTML(this.activityTemplateTarget))
     this.refresh()
-    this.focusBelow(field)
+    this.focusRow(field, 1)
   }
 
-  focusBelow(field) {
+  focusRow(field, offset) {
     const row = field.closest("tr")
-    const next = this.rowTargets[this.rowTargets.indexOf(row) + 1]
-    if (!next) return
+    const destination = this.rowTargets[this.rowTargets.indexOf(row) + offset]
+    if (!destination) return
 
     const column = field.name.match(/\[(\w+)\]$/)?.[1]
-    const target = next.querySelector(`[name$="[${column}]"]`) ?? next.querySelector("input[type=text], textarea")
+    const target = destination.querySelector(`[name$="[${column}]"]`) ??
+      destination.querySelector("input[type=text], textarea")
     target?.focus()
   }
 }
