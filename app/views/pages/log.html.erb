@@ -63,6 +63,11 @@
     font-style: italic;
   }
 
+  .guide {
+    color: #999;
+    font-size: 0.9rem;
+  }
+
   #log tr:has(.destroy input:checked) {
     opacity: 0.4;
     text-decoration: line-through;
@@ -125,6 +130,8 @@
       <%= render "log_note_row", form: rf, categories: category_options %>
     <% end %>
   </template>
+
+  <p class="guide">Enter 次の行 / Shift+Enter 挿入 / ↑↓ 移動 / Ctrl+; 現在時刻 / Ctrl+S 保存</p>
 
   <nav>
     <button type="button" data-action="log#finishRow">次の行へ</button>

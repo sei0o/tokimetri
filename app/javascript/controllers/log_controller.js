@@ -103,21 +103,22 @@ export default class extends Controller {
     const current = this.rowTargets.findLast(row => this.filled(row))
     if (!current) return
 
-    const end = current.querySelector(".end")
-    if (end && !end.value) end.value = this.now()
+    this.closeRow(current)
     this.refresh()
 
     const next = this.rowTargets[this.rowTargets.indexOf(current) + 1]
     next?.querySelector('[name$="[what]"]')?.focus()
   }
 
+  // ページの日付から見た現在時刻。昨日の深夜ぶんを書くこともあるので 48 時間まで許す
   now() {
     const page = new Date(`${this.dateValue}T00:00:00`)
     const now = new Date()
     const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const days = Math.round((midnight - page) / 86400000)
+    const hours = Math.round((midnight - page) / 86400000) * 24 + now.getHours()
+    if (hours < 0 || hours >= 48) return null
 
-    return `${days * 24 + now.getHours()}:${String(now.getMinutes()).padStart(2, "0")}`
+    return `${hours}:${String(now.getMinutes()).padStart(2, "0")}`
   }
 
   key(event) {
@@ -130,6 +131,12 @@ export default class extends Controller {
     // 日本語入力の変換中は、確定の Enter も候補を選ぶ矢印も拾わない
     if (event.isComposing || event.keyCode === 229) return
 
+    if ((event.metaKey || event.ctrlKey) && event.key === ";") {
+      event.preventDefault()
+      this.stampNow(event.target)
+      return
+    }
+
     if (event.key === "Enter") {
       if (event.shiftKey) {
         event.preventDefault()
@@ -137,6 +144,8 @@ export default class extends Controller {
       } else if (event.target.tagName !== "TEXTAREA") {
         // メモの中では改行させる
         event.preventDefault()
+        this.closeRow(event.target.closest("tr"))
+        this.refresh()
         this.focusRow(event.target, 1)
       }
       return
@@ -148,6 +157,26 @@ export default class extends Controller {
 
     event.preventDefault()
     this.focusRow(event.target, offset)
+  }
+
+  // 終了時刻を書かないまま次へ進んだら、いま終わったものとして埋める
+  closeRow(row) {
+    const end = row?.querySelector(".end")
+    if (!end || end.value) return
+    if (!row.querySelector('[name$="[what]"]').value.trim()) return
+
+    const now = this.now()
+    if (now) end.value = now
+  }
+
+  stampNow(field) {
+    if (!field.classList.contains("start") && !field.classList.contains("end")) return
+
+    const now = this.now()
+    if (!now) return
+
+    field.value = now
+    this.refresh()
   }
 
   // select は上下で選択肢を変えるのが当たり前なので任せる。
