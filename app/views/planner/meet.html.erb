@@ -18,10 +18,22 @@
 
   <div class="panel">
     <h2>当日</h2>
-    <div id="timer"></div>
-    <br>
     合計時間：<span id="total-time">??分</span><br>
-    <ul id="tasks" class="task-list"></ul>
+    <ul class="task-list">
+      <% [
+        ["電車の運行を再確認する", 5],
+        ["服を選んで着る", 5],
+        ["歯みがき", 3],
+        ["髭を剃る", 1],
+        ["持ち物を確認する", 5]
+      ].each do |title, minutes| %>
+        <li class="task" data-minutes="<%= minutes %>">
+          <label><input type="checkbox"> <%= title %></label>
+          <span class="task-duration"><%= minutes %>分</span>
+          <div class="task-meta"></div>
+        </li>
+      <% end %>
+    </ul>
     <div class="inline-time-row">
       家を出る時間 <span class="time-preview" id="departure-time-last">??:??</span>
       (あと <span id="time-to-departure">??分</span>)
@@ -30,43 +42,16 @@
 </div>
 
 <script type="module">
-import { PlannerTimer } from "planner_timer";
-
-const tasks = [
-  { title: '電車の運行を再確認する', duration: 5 * 60 },
-  { title: '服を選んで着る', duration: 5 * 60 },
-  { title: '歯みがき', duration: 3 * 60 },
-  { title: '髭を剃る', duration: 1 * 60 },
-  { title: '持ち物を確認する', duration: 5 * 60 },
-];
-
-const timerEl = document.getElementById('timer');
-const tasksEl = document.getElementById('tasks');
-const timer = new PlannerTimer(tasks, render);
-
-document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
-
+const tasks = [...document.querySelectorAll('.task')];
 const departureInput = document.getElementById('departure-time');
-departureInput.addEventListener('input', () => {
-  updatePrepareStartTime();
-  render();
-});
 
+departureInput.addEventListener('input', render);
+tasks.forEach(task => task.addEventListener('change', render));
 render();
-updatePrepareStartTime();
-
-function render() {
-  timer.renderTimer(timerEl);
-  renderTasks();
-  updateTotalTime();
-  updateTimeToDeparture();
-  updateDepartureTimeLast();
-}
 
 function parseTime(value) {
   if (!value) return null;
   const [h, m] = value.split(':').map(Number);
-  if (isNaN(h) || isNaN(m)) return null;
   return h * 60 + m;
 }
 
@@ -76,73 +61,38 @@ function toTimeText(totalMinutes) {
 }
 
 function fmtSignedMin(m) {
-  return m >= 0 ? `${m}分` : `-${Math.abs(m)}分`;
+  return `${m}分`;
 }
 
-function getRemainingTotalMinutes() {
-  let s = 0;
-  for (let i = 0; i < tasks.length; i++) {
-    s += timer.done[i] ? 0 : (i === timer.state.index ? Math.max(0, timer.state.remaining) : tasks[i].duration);
-  }
-  return Math.max(0, Math.round(s / 60));
+function remainingMinutes(task) {
+  return task.querySelector('input').checked ? 0 : Number(task.dataset.minutes);
 }
 
-function updateTotalTime() {
-  document.getElementById('total-time').textContent = `${getRemainingTotalMinutes()}分`;
-}
-
-function updatePrepareStartTime() {
-  const el = document.getElementById('prepare-start-time');
-  const dep = parseTime(departureInput.value);
-  el.textContent = dep != null ? toTimeText(dep - getRemainingTotalMinutes()) : '??:??';
-}
-
-function updateDepartureTimeLast() {
-  document.getElementById('departure-time-last').textContent = departureInput.value || '??:??';
-}
-
-function updateTimeToDeparture() {
-  const el = document.getElementById('time-to-departure');
-  const dep = parseTime(departureInput.value);
-  if (dep == null) { el.textContent = '??分'; el.classList.remove('alert'); return; }
-  const now = new Date();
-  const remaining = dep - (now.getHours() * 60 + now.getMinutes());
-  el.textContent = fmtSignedMin(remaining);
-  el.classList.toggle('alert', remaining < 0);
-}
-
-function renderTasks() {
-  tasksEl.innerHTML = '';
+function render() {
   const now = new Date();
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const depMin = parseTime(departureInput.value);
-  let cumSec = 0;
+  let cumulative = 0;
 
-  tasks.forEach((task, i) => {
-    const remSec = timer.done[i] ? 0 : (i === timer.state.index ? Math.max(0, timer.state.remaining) : task.duration);
-    const startMin = nowMin + Math.round(cumSec / 60);
-    const minsToDep = depMin != null ? depMin - startMin : null;
-    const isLate = minsToDep != null && minsToDep < 0;
-
-    const item = document.createElement('li');
-    item.className = ['task', timer.done[i] ? 'done' : i === timer.state.index ? 'active' : ''].filter(Boolean).join(' ');
-    item.innerHTML = `
-      <input type="checkbox" ${timer.done[i] ? 'checked' : ''} aria-label="${task.title}">
-      <div class="task-main">
-        <div class="task-title">${task.title}</div>
-        <div class="task-duration">${PlannerTimer.fmtMin(remSec)}</div>
-        <div class="task-meta ${isLate ? 'alert' : ''}">
-          ${timer.done[i] ? '完了' : `予想開始 ${toTimeText(startMin)}${minsToDep != null ? ` / 出発まであと ${fmtSignedMin(minsToDep)}` : ''}`}
-        </div>
-      </div>
-    `;
-    const cb = item.querySelector('input');
-    cb.addEventListener('change', () => timer.toggle(i, cb.checked));
-    item.addEventListener('click', e => {
-      if (e.target.tagName !== 'INPUT') { cb.checked = !cb.checked; timer.toggle(i, cb.checked); }
-    });
-    tasksEl.appendChild(item);
-    cumSec += remSec;
+  tasks.forEach(task => {
+    const done = task.querySelector('input').checked;
+    const startMin = nowMin + cumulative;
+    const minsToDep = depMin == null ? null : depMin - startMin;
+    const meta = task.querySelector('.task-meta');
+    meta.textContent = done
+      ? '完了'
+      : `予想開始 ${toTimeText(startMin)}${minsToDep == null ? '' : ` / 出発まであと ${fmtSignedMin(minsToDep)}`}`;
+    meta.classList.toggle('alert', !done && minsToDep != null && minsToDep < 0);
+    cumulative += remainingMinutes(task);
   });
+
+  document.getElementById('total-time').textContent = `${cumulative}分`;
+  document.getElementById('prepare-start-time').textContent = depMin == null ? '??:??' : toTimeText(depMin - cumulative);
+  document.getElementById('departure-time-last').textContent = departureInput.value || '??:??';
+
+  const toDeparture = document.getElementById('time-to-departure');
+  const remaining = depMin == null ? null : depMin - nowMin;
+  toDeparture.textContent = remaining == null ? '??分' : fmtSignedMin(remaining);
+  toDeparture.classList.toggle('alert', remaining != null && remaining < 0);
 }
 </script>

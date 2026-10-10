@@ -4,33 +4,19 @@
     <p class="subtle">紅茶でもいれる / 冷めないようにする</p>
   </div>
   <div class="panel">
-    <div id="timer"></div>
-  </div>
-  <div class="panel">
-    <ul id="tasks" class="task-list"></ul>
+    <ul class="task-list">
+      <% [
+        ["シャワーを浴びる", 20],
+        ["保湿をする", 2],
+        ["髪を乾かす", 3],
+        ["新しい下着を着る", 2],
+        ["脱いだ服を片付ける", 1]
+      ].each do |title, minutes| %>
+        <li class="task">
+          <label><input type="checkbox"> <%= title %></label>
+          <span class="task-duration"><%= minutes %>分</span>
+        </li>
+      <% end %>
+    </ul>
   </div>
 </div>
-
-<script type="module">
-import { PlannerTimer } from "planner_timer";
-
-const tasks = [
-  { title: 'シャワーを浴びる', duration: 20 * 60 },
-  { title: '保湿をする', duration: 2 * 60 },
-  { title: '髪を乾かす', duration: 3 * 60 },
-  { title: '新しい下着を着る', duration: 2 * 60 },
-  { title: '脱いだ服を片付ける', duration: 1 * 60 },
-];
-
-const timerEl = document.getElementById('timer');
-const tasksEl = document.getElementById('tasks');
-const timer = new PlannerTimer(tasks, () => {
-  timer.renderTimer(timerEl);
-  timer.renderTasks(tasksEl);
-});
-
-document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
-
-timer.renderTimer(timerEl);
-timer.renderTasks(tasksEl);
-</script>

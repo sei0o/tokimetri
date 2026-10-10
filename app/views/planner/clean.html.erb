@@ -3,51 +3,41 @@
     <h1>掃除</h1>
   </div>
   <div class="panel">
-    <div id="timer"></div>
-  </div>
-  <div class="panel">
     <div id="weather" class="weather-note"></div>
-    <ul id="tasks" class="task-list"></ul>
+    <ul class="task-list">
+      <% [
+        ["音楽をかける", 1],
+        ["服をクローゼット、洗濯機へ", 3],
+        ["洗濯機を回す", 1],
+        ["ゴミを捨てる", 3],
+        ["本を集める→可能なら本棚へ", 5],
+        ["机の上のものを減らす", 5],
+        ["ふきん/メラミンスポンジを変える", 1],
+        ["机を拭く", 4],
+        ["服をクローゼットに入れる", 3],
+        ["タッパーをシンクに置く", 3],
+        ["食器をシンクに置く", 2],
+        ["手と足の爪を切る", 5],
+        ["洗い物をする", 5],
+        ["シンク・コンロを掃除する", 10],
+        ["掃除機をかける", 5],
+        ["トイレ掃除する", 3],
+        ["干す", 15],
+        ["洗濯機のホコリを取る", 3],
+        ["洗濯物を取り込む", 10]
+      ].each do |title, minutes| %>
+        <li class="task">
+          <label><input type="checkbox"> <%= title %></label>
+          <span class="task-duration"><%= minutes %>分</span>
+        </li>
+      <% end %>
+    </ul>
   </div>
 </div>
 
 <script type="module">
-import { PlannerTimer } from "planner_timer";
-
-const tasks = [
-  { title: '音楽をかける', duration: 60 },
-  { title: '服をクローゼット、洗濯機へ', duration: 180 },
-  { title: '洗濯機を回す', duration: 60 },
-  { title: 'ゴミを捨てる', duration: 180 },
-  { title: '本を集める→可能なら本棚へ', duration: 300 },
-  { title: '机の上のものを減らす', duration: 300 },
-  { title: 'ふきん/メラミンスポンジを変える', duration: 60 },
-  { title: '机を拭く', duration: 240 },
-  { title: '服をクローゼットに入れる', duration: 180 },
-  { title: 'タッパーをシンクに置く', duration: 180 },
-  { title: '食器をシンクに置く', duration: 120 },
-  { title: '手と足の爪を切る', duration: 300 },
-  { title: '洗い物をする', duration: 300 },
-  { title: 'シンク・コンロを掃除する', duration: 600 },
-  { title: '掃除機をかける', duration: 300 },
-  { title: 'トイレ掃除する', duration: 180 },
-  { title: '干す', duration: 900 },
-  { title: '洗濯機のホコリを取る', duration: 180 },
-  { title: '洗濯物を取り込む', duration: 600 },
-];
-
-const timerEl = document.getElementById('timer');
-const tasksEl = document.getElementById('tasks');
-const timer = new PlannerTimer(tasks, () => {
-  timer.renderTimer(timerEl);
-  timer.renderTasks(tasksEl);
-});
-
-document.addEventListener('turbo:before-cache', () => timer.pause(), { once: true });
-
-timer.renderTimer(timerEl);
-timer.renderTasks(tasksEl);
 loadWeather();
+
 
 async function loadWeather() {
   const weatherEl = document.getElementById('weather');
