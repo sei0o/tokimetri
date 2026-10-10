@@ -76,7 +76,7 @@
 
 <script>
   function copyWeekContent() {
-    const pages = <%= raw @pages_thisweek.map { |p| { date: p.date.strftime("%Y/%m/%d %a"), content: p.content } }.to_json %>;
+    const pages = <%= raw @pages_thisweek.map { |p| { date: p.date.strftime("%Y/%m/%d %a"), content: p.content.to_s } }.to_json %>;
     let text = '<%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %>\n\n';
     
     pages.forEach(page => {
@@ -135,7 +135,7 @@
     <% @pages_thisweek.each do |page| %>
       <div>
         <h3><%= page.date.strftime("%Y/%m/%d %a") %></h3>
-        <%= page.content.gsub("\n", "<br>").html_safe %>
+        <%= page.content.to_s.gsub("\n", "<br>").html_safe %>
       </div>
     <% end %>
   </details>

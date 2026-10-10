@@ -12,23 +12,23 @@ end
 class Page < ApplicationRecord
   # has_rich_text :content
   validates :date, presence: true
-  validates :content, presence: true
 
-  has_many :records, dependent: :destroy
-  accepts_nested_attributes_for :records, allow_destroy: true, reject_if: :all_blank
+  has_many :records, -> { order(:start_time, :id) }, dependent: :destroy
+  accepts_nested_attributes_for :records, allow_destroy: true,
+    reject_if: ->(attrs) { attrs.except("kind", "_destroy").values.all?(&:blank?) }
 
   def wake_time
-    if last = records.where(category: "睡眠").order(:end_time).last
+    if last = records.activities.where(category: "睡眠").order(:end_time).last
       return last.end_time
     end
 
     if yesterday_page = Page.find_by(date: date - 1.day)
-      if yesterday_last = yesterday_page.records.where(category: "睡眠").order(:end_time).last
+      if yesterday_last = yesterday_page.records.activities.where(category: "睡眠").order(:end_time).last
         return yesterday_last.end_time
       end
     end
 
-    records.first&.start_time
+    records.activities.first&.start_time
   end
 
   def self.average_wake_time(pages)
@@ -79,7 +79,7 @@ class Page < ApplicationRecord
   end
 
   def apply_parsed_records(records_data)
-    self.records.destroy_all
+    records.activities.destroy_all
     records_data.each do |record|
       start_val = record.respond_to?(:start) ? record.start : record["start"]
       end_val   = record.respond_to?(:end)   ? record.end   : record["end"]
@@ -87,28 +87,19 @@ class Page < ApplicationRecord
       cat_val   = record.respond_to?(:category) ? record.category : record["category"]
       self.records.create(start_time: start_val, end_time: end_val, what: what_val, category: cat_val)
     end
-    merge_sleep_records
     add_sleep_if_missing
+    reconcile_sleep_boundaries!
   end
 
-  def merge_sleep_records
-    # 前日の最後の睡眠レコード（就寝）を探す
-    yesterday_page = Page.find_by(date: date - 1.day)
-    return true unless yesterday_page
-
-    yesterday_sleep = yesterday_page.records.order(:start_time).last
-    return true unless yesterday_sleep && yesterday_sleep.category == "睡眠"
-
-    if yesterday_sleep.end_time.nil?
-      today_earliest = records.order(:start_time).first
-      yesterday_sleep.update(end_time: today_earliest.start_time)
-    else
-      true
-    end
+  # 前日・翌日どちらのページが後から保存/再分析されても、
+  # 日をまたぐ睡眠レコードの end_time が正しく埋まるようにする
+  def reconcile_sleep_boundaries!
+    close_sleep_boundary(Page.find_by(date: date - 1.day), self)
+    close_sleep_boundary(self, Page.find_by(date: date + 1.day))
   end
 
   def add_sleep_if_missing
-    last_record = records.order(:start_time, :end_time).last
+    last_record = records.activities.last
     return unless last_record
     return if last_record.category == "睡眠"
 
@@ -123,7 +114,7 @@ class Page < ApplicationRecord
   def category_durations_minutes
     summary = Hash.new(0)
 
-    records.each do |record|
+    records.activities.each do |record|
       if dur = record.duration_minutes
         summary[record.category] += dur
       end
@@ -154,6 +145,21 @@ class Page < ApplicationRecord
   end
 
   private
+    def close_sleep_boundary(earlier_page, later_page)
+      return unless earlier_page && later_page
+
+      earlier_sleep = earlier_page.records.activities.last
+      return unless earlier_sleep && earlier_sleep.category == "睡眠" && earlier_sleep.end_time.nil?
+
+      later_first = later_page.records.activities.first
+      return unless later_first
+
+      boundary_time = later_first.start_time || later_first.end_time
+      return unless boundary_time
+
+      earlier_sleep.update(end_time: boundary_time)
+    end
+
     def prompt
       today = self.date.strftime("%Y-%m-%d")
       setting = Setting.instance

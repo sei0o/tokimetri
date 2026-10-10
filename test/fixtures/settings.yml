@@ -2,8 +2,4 @@
 
 one:
   prompt: MyText
-  categories: MyString
-
-two:
-  prompt: MyText
-  categories: MyString
+  categories: '{"研究":"#4175c9","趣味":"#c43dad","生活":"#46843e","移動":"#6e6e6e","睡眠":"#3c4c5d"}'
