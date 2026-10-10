@@ -82,7 +82,6 @@
         <tr>
           <th><input type="checkbox" style="visibility: hidden;"></th>
           <th>Start</th>
-          <th>WST8</th>
           <th>Duration</th>
           <th>What</th>
           <th>Category</th>
@@ -94,7 +93,7 @@
           <% if record.page.date != last_date %>
             <% last_date = record.page.date %>
             <tr>
-              <td colspan="7" class="day-separator">
+              <td colspan="5" class="day-separator">
                 <%= link_to record.page.date.strftime("%Y-%m-%d"), date_path(record.page.date.strftime("%Y%m%d")) %>
               </td>
             </tr>

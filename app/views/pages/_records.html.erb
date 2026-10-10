@@ -15,9 +15,6 @@
 
 <div data-controller="record-selection">
   <% if page.records.any? %>
-    <% wake_time = page.wake_time %>
-    <% wake_offset_minutes = wake_time ? (wake_time.hour * 60 + wake_time.min - 8 * 60) : 0 %>
-    
     <div class="category_durations">
       <% page.category_durations_minutes.each do |category, duration| %>
         <span>
@@ -40,7 +37,6 @@
         <tr>
           <th><input type="checkbox" style="visibility: hidden;"></th>
           <th>Start</th>
-          <th>WST8</th>
           <th>Duration</th>
           <th>What</th>
           <th>Category</th>
