@@ -112,8 +112,11 @@ class PagesController < ApplicationController
   end
 
   def update
-    if @page.update(page_params)
+    attributes = page_params
+    if @page.update(attributes)
+      created_ids = created_record_ids(attributes)
       @page.reconcile_sleep_boundaries!
+      return render json: { ids: created_ids } if request.format.json?
       return redirect_to log_path(@date.strftime("%Y%m%d")) if params[:from] == "log"
 
       respond_to do |format|
@@ -123,6 +126,8 @@ class PagesController < ApplicationController
         }
       end
     else
+      return head :unprocessable_entity if request.format.json?
+
       respond_to do |format|
         format.html {
           set_navigation_pages
@@ -310,6 +315,16 @@ class PagesController < ApplicationController
     end
 
     permitted
+  end
+
+  # 新しく作られた行の id を、フォームの行番号(child_index)ごとに返す。
+  # 自動保存では画面を作り直さないので、次の保存で重複させないために必要
+  def created_record_ids(attributes)
+    keys = (attributes[:records_attributes] || {}).select { |_, attrs|
+      attrs[:id].blank? && attrs[:_destroy] != "1" && attrs.except(:kind, :_destroy).values.any?(&:present?)
+    }.keys
+    created = @page.records.target.select(&:previously_new_record?)
+    keys.zip(created.map(&:id)).to_h
   end
 
   # 「25:30」のような 24 時超えの表記をその日からのオフセットとして読む

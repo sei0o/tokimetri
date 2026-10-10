@@ -78,6 +78,48 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal Time.zone.local(2026, 9, 9, 10, 0), sleep_record.start_time
   end
 
+  test "自動保存は作った行の id を行番号ごとに返す" do
+    patch update_date_page_path(@date.strftime("%Y%m%d")), as: :json, params: {
+      from: "log",
+      page: {
+        date: @date,
+        records_attributes: {
+          "100" => { kind: "activity", start_time: "9:00", end_time: "10:00", what: "研究", category: "研究" },
+          "101" => { kind: "activity", start_time: "", end_time: "", what: "", category: "" },
+          "102" => { kind: "note", start_time: "10:30", what: "メモ" }
+        }
+      }
+    }
+    assert_response :success
+
+    page = Page.find_by(date: @date)
+    ids = response.parsed_body["ids"]
+    assert_equal %w[100 102], ids.keys
+    assert_equal ids["100"], page.records.find_by(what: "研究").id
+    assert_equal ids["102"], page.records.find_by(what: "メモ").id
+  end
+
+  test "自動保存は id を送れば行を増やさず、削除した行は消える" do
+    page = Page.create!(date: @date)
+    record = page.records.create!(start_time: "2026-09-09 09:00", end_time: "2026-09-09 10:00", what: "研究", category: "研究")
+    other = page.records.create!(start_time: "2026-09-09 10:00", end_time: "2026-09-09 11:00", what: "散歩", category: "移動")
+
+    patch update_date_page_path(@date.strftime("%Y%m%d")), as: :json, params: {
+      from: "log",
+      page: {
+        date: @date,
+        records_attributes: {
+          "0" => { id: record.id, kind: "activity", start_time: "9:00", end_time: "10:30", what: "研究", category: "研究" },
+          "1" => { id: other.id, kind: "activity", start_time: "10:00", end_time: "11:00", what: "散歩", category: "移動", _destroy: "1" }
+        }
+      }
+    }
+    assert_response :success
+    assert_equal({}, response.parsed_body["ids"])
+    assert_equal [ "研究" ], page.records.reload.map(&:what)
+    assert_equal Time.zone.local(2026, 9, 9, 10, 30), record.reload.end_time
+  end
+
   test "過去の記録からカテゴリを推測する" do
     page = Page.create!(date: @date - 1.day)
     3.times { page.records.create!(what: "ネットサーフィン", category: "娯楽/だらだら") }

@@ -51,6 +51,10 @@
     color: #999;
   }
 
+  #log .duration.running {
+    font-style: italic;
+  }
+
   #log .destroy {
     width: 3rem;
   }
@@ -61,6 +65,13 @@
 
   #log select.guessed {
     font-style: italic;
+  }
+
+  .save-status {
+    margin-left: 10px;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: #666;
   }
 
   .guide {
@@ -94,7 +105,7 @@
 
 <%= form_with model: @page, url: update_date_page_path(@page.date.strftime("%Y%m%d")), method: :patch,
       data: { controller: "log", log_date_value: @page.date.iso8601,
-              action: "input->log#refresh change->log#refresh keydown->log#key" } do |f| %>
+              action: "focusin->log#track input->log#refresh input->log#scheduleSave change->log#refresh change->log#scheduleSave keydown->log#key" } do |f| %>
   <%= hidden_field_tag :from, "log" %>
 
   <table id="log">
@@ -137,5 +148,6 @@
     <button type="button" data-action="log#finishRow">次の行へ</button>
     <button type="button" data-action="log#addNote">メモを追加</button>
     <%= f.submit "保存" %>
+    <span data-log-target="status" class="save-status"></span>
   </nav>
 <% end %>

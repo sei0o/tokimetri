@@ -11,12 +11,63 @@ const atFirstLine = (el) => !el.value.slice(0, el.selectionStart).includes("\n")
 const atLastLine = (el) => !el.value.slice(el.selectionEnd).includes("\n")
 
 export default class extends Controller {
-  static targets = ["rows", "row", "activityTemplate", "noteTemplate"]
+  static targets = ["rows", "row", "activityTemplate", "noteTemplate", "status"]
   static values = { date: String }
 
   connect() {
     this.index = Date.now()
     this.refresh()
+    this.timer = setInterval(() => this.refresh(), 60_000)
+  }
+
+  disconnect() {
+    clearInterval(this.timer)
+    clearTimeout(this.saveTimer)
+  }
+
+  scheduleSave() {
+    clearTimeout(this.saveTimer)
+    this.statusTarget.textContent = "編集中..."
+    this.saveTimer = setTimeout(() => this.save(), 2000)
+  }
+
+  // 保存中に書き足されたぶんは、終わってから次の保存で送る
+  async save() {
+    clearTimeout(this.saveTimer)
+    this.saveTimer = null
+    if (this.saving) return this.scheduleSave()
+
+    this.saving = true
+    this.statusTarget.textContent = "保存中..."
+    const deleted = this.rowTargets.filter(row => row.querySelector(".destroy input[type=checkbox]:checked"))
+
+    try {
+      const response = await fetch(this.element.action, {
+        method: "POST",
+        body: new FormData(this.element),
+        headers: { Accept: "application/json" }
+      })
+      if (!response.ok) throw new Error(response.status)
+
+      const { ids } = await response.json()
+      this.assignIds(ids)
+      deleted.forEach(row => row.remove())
+      if (!this.saveTimer) this.statusTarget.textContent = "保存しました"
+    } catch {
+      this.statusTarget.textContent = "保存に失敗しました"
+    } finally {
+      this.saving = false
+    }
+  }
+
+  // 新しく作られた行に id を持たせて、次の保存で別の行として作り直さないようにする
+  assignIds(ids) {
+    for (const [index, id] of Object.entries(ids)) {
+      const kind = this.element.querySelector(`[name="page[records_attributes][${index}][kind]"]`)
+      kind?.after(Object.assign(document.createElement("input"), {
+        type: "hidden", name: kind.name.replace("[kind]", "[id]"), value: id
+      }))
+    }
   }
 
   // 開始時刻は前の行の終了時刻を引き継ぐ。placeholder で見せて、書けば上書きされる
@@ -38,12 +89,16 @@ export default class extends Controller {
     if (last && this.filled(last)) this.addRow(this.activityTemplateTarget)
   }
 
+  // 終了のない行は実行中なので、開始からの経過を斜体で見せる
   showDuration(row, from, to) {
     const cell = row.querySelector(".duration")
     if (!cell) return
 
     const start = toMinutes(from ?? "")
-    const end = toMinutes(to ?? "")
+    const running = !to && row.querySelector('[name$="[what]"]').value.trim() !== ""
+    const end = toMinutes((running ? this.now() : to) ?? "")
+
+    cell.classList.toggle("running", running)
     cell.textContent = start !== null && end !== null && end >= start ? toHM(end - start) : ""
   }
 
@@ -57,8 +112,16 @@ export default class extends Controller {
     textarea.style.height = `${textarea.scrollHeight}px`
   }
 
+  // ボタンを押すとフォーカスが外れるので、最後に触った行を覚えておく
+  track(event) {
+    this.currentRow = event.target.closest("tr") ?? this.currentRow
+  }
+
   addNote() {
-    this.addRow(this.noteTemplateTarget)
+    const row = this.rowTargets.includes(this.currentRow) ? this.currentRow : this.rowTargets.at(-1)
+    row.insertAdjacentHTML("afterend", this.rowHTML(this.noteTemplateTarget))
+    this.refresh()
+    row.nextElementSibling.querySelector("textarea").focus()
   }
 
   addRow(template) {
@@ -124,7 +187,7 @@ export default class extends Controller {
   key(event) {
     if ((event.metaKey || event.ctrlKey) && event.key === "s") {
       event.preventDefault()
-      this.element.requestSubmit()
+      this.save()
       return
     }
 
@@ -167,6 +230,7 @@ export default class extends Controller {
 
     const now = this.now()
     if (now) end.value = now
+    this.scheduleSave()
   }
 
   stampNow(field) {
@@ -177,6 +241,7 @@ export default class extends Controller {
 
     field.value = now
     this.refresh()
+    this.scheduleSave()
   }
 
   // select は上下で選択肢を変えるのが当たり前なので任せる。
