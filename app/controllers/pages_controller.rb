@@ -178,8 +178,7 @@ class PagesController < ApplicationController
     client = OpenAI::Client.new(api_key: Rails.application.credentials.openai.api_key)
 
     file = client.files.create(
-      file: StringIO.new(jsonl),
-      filename: "analyze_batch_#{Date.today}.jsonl",
+      file: OpenAI::FilePart.new(StringIO.new(jsonl), filename: "analyze_batch_#{Date.today}.jsonl"),
       purpose: "batch"
     )
 
@@ -204,7 +203,7 @@ class PagesController < ApplicationController
     client = OpenAI::Client.new(api_key: Rails.application.credentials.openai.api_key)
     batch = client.batches.retrieve(setting.batch_id)
 
-    unless batch.status == "completed"
+    unless batch.status == :completed
       redirect_to review_path, notice: "バッチはまだ処理中です（status: #{batch.status}）"
       return
     end
