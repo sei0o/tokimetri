@@ -173,6 +173,26 @@ export default class extends Controller {
     next?.querySelector('[name$="[what]"]')?.focus()
   }
 
+  // plan から渡されたことを、いま始めたものとして空いている行に書く
+  start({ detail: { what, category } }) {
+    const current = this.rowTargets.findLast(row => row.querySelector(".end") && this.filled(row))
+    if (current) this.closeRow(current)
+
+    const after = this.rowTargets.slice(this.rowTargets.indexOf(current) + 1)
+    const row = after.find(row => row.querySelector(".end") && !this.filled(row))
+    const field = row.querySelector('[name$="[what]"]')
+
+    row.querySelector(".start").value = this.now() ?? ""
+    if (category) {
+      const select = row.querySelector("select")
+      select.value = category
+      select.dispatchEvent(new Event("change", { bubbles: true }))
+    }
+    field.value = what
+    field.dispatchEvent(new Event("change", { bubbles: true }))
+    field.focus()
+  }
+
   // ページの日付から見た現在時刻。昨日の深夜ぶんを書くこともあるので 48 時間まで許す
   now() {
     const page = new Date(`${this.dateValue}T00:00:00`)

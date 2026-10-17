@@ -1,0 +1,10 @@
+<tr id="task_<%= task.id %>" style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
+  <td class="check"><input type="checkbox" data-action="plan#done" data-plan-id-param="<%= task.id %>"></td>
+  <td><%= task.content %></td>
+  <td class="actions">
+    <% if local_assigns[:movable] %>
+      <button type="button" data-action="plan#today" data-plan-id-param="<%= task.id %>">今日へ</button>
+    <% end %>
+    <button type="button" data-action="plan#start" data-plan-id-param="<%= task.id %>" data-plan-what-param="<%= task.content %>" data-plan-category-param="<%= task.category %>">始める</button>
+  </td>
+</tr>

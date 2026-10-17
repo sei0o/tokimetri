@@ -10,6 +10,9 @@ class ActivityRecords < OpenAI::BaseModel
 end
 
 class Page < ApplicationRecord
+  PACE_CATEGORIES = %w[生活 研究 趣味 娯楽/だらだら].freeze
+  RECORDED_MINUTES = 8 * 60
+
   # has_rich_text :content
   validates :date, presence: true
 
@@ -94,14 +97,24 @@ class Page < ApplicationRecord
   # 前日・翌日どちらのページが後から保存/再分析されても、
   # 日をまたぐ睡眠レコードの end_time が正しく埋まるようにする
   def reconcile_sleep_boundaries!
-    close_sleep_boundary(Page.find_by(date: date - 1.day), self)
-    close_sleep_boundary(self, Page.find_by(date: date + 1.day))
+    [ [ Page.find_by(date: date - 1.day), self ], [ self, Page.find_by(date: date + 1.day) ] ].each do |earlier, later|
+      close_sleep_boundary(earlier, later)
+      open_sleep_boundary(earlier, later)
+    end
+  end
+
+  # 書いている途中の日には足さず、前日以前のページにだけ就寝を補う
+  def add_missing_sleep_before!(today)
+    [ Page.find_by(date: date - 1.day), self ].compact.each do |page|
+      page.add_sleep_if_missing if page.date < today
+    end
   end
 
   def add_sleep_if_missing
     last_record = records.activities.last
     return unless last_record
     return if last_record.category == "睡眠"
+    return if Page.find_by(date: date + 1.day)&.records&.activities&.first&.category == "睡眠"
 
     records.create(
       start_time: last_record.end_time || last_record.start_time,
@@ -114,13 +127,57 @@ class Page < ApplicationRecord
   def category_durations_minutes
     summary = Hash.new(0)
 
-    records.activities.each do |record|
+    records.select(&:activity?).each do |record|
       if dur = record.duration_minutes
         summary[record.category] += dur
       end
     end
 
     summary.sort_by { |_, duration| -duration }
+  end
+
+  def awake_minutes
+    category_durations_minutes.sum { |category, minutes| category == "睡眠" ? 0 : minutes }
+  end
+
+  def recorded?
+    awake_minutes >= RECORDED_MINUTES
+  end
+
+  # 月曜に起きた瞬間をゼロとして積み上がる今週の時間と、いつもの同じ時点との差、週平均
+  def self.weekly_pace(today, now)
+    monday = today.beginning_of_week
+    usual = includes(:records).where(date: ...monday).order(date: :desc).limit(120).select(&:recorded?).first(28)
+    return {} if usual.empty?
+
+    days = includes(:records).where(date: monday...today).select(&:recorded?)
+    page = includes(:records).find_by(date: today)
+    actual = calculate_category_total(days)
+    actual.merge!(page.category_minutes_until(now)) { |_, a, b| a + b } if page
+
+    average = calculate_category_averages(usual)
+    elapsed = days.size + (page&.awake_fraction(now, usual.sum(&:awake_minutes) / usual.size) || 0)
+
+    PACE_CATEGORIES.to_h do |category|
+      minutes = actual.fetch(category, 0)
+      daily = average.fetch(category, 0)
+      [ category, [ minutes, minutes - daily * elapsed, daily * 7 ] ]
+    end
+  end
+
+  def category_minutes_until(now)
+    summary = category_durations_minutes.to_h
+    running = records.select(&:activity?).last
+    if running&.start_time && running.end_time.nil?
+      summary[running.category] = summary.fetch(running.category, 0) + ((now - running.start_time) / 60).to_i
+    end
+    summary
+  end
+
+  def awake_fraction(now, usual_awake_minutes)
+    return 0 unless wake_time && usual_awake_minutes.positive?
+
+    ((now - wake_time) / 60 / usual_awake_minutes).clamp(0, 1)
   end
 
   def self.calculate_category_total(pages)
@@ -158,6 +215,21 @@ class Page < ApplicationRecord
       return unless boundary_time
 
       earlier_sleep.update(end_time: boundary_time)
+    end
+
+    # 寝る前に翌日のページへ起床時刻だけ書いた睡眠は、前日の最後の行が終わったときに始まったことにする。
+    # 前日に書き足すと最後がずれるので、そのたびに合わせ直す
+    def open_sleep_boundary(earlier_page, later_page)
+      return unless earlier_page && later_page
+
+      later_sleep = later_page.records.activities.first
+      return unless later_sleep&.category == "睡眠" && later_sleep.end_time
+
+      bed_time = earlier_page.records.activities.maximum(:end_time)
+      return unless bed_time && bed_time < later_sleep.end_time
+      return if later_sleep.start_time && later_sleep.start_time >= bed_time
+
+      later_sleep.update(start_time: bed_time)
     end
 
     def prompt

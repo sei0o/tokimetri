@@ -48,6 +48,7 @@
   }
 
   .daily-chart {
+    position: relative;
     display: flex;
     gap: 6px;
     margin-bottom: 1.5rem;
@@ -64,6 +65,22 @@
     height: 180px;
     display: flex;
     flex-direction: column-reverse;
+  }
+
+  .chart-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px dashed #999;
+    pointer-events: none;
+  }
+
+  .chart-line span {
+    position: absolute;
+    right: 0;
+    top: -1rem;
+    font-size: 0.7rem;
+    color: #999;
   }
 
   .chart-label {
@@ -172,9 +189,12 @@
     </div>
   <% end %>
   
-  <% chart_max = [@pages_thisweek.map { |p| p.category_durations_minutes.sum { |_, m| m } }.max || 0, 1].max %>
+  <% chart_max = [@pages_thisweek.map { |p| p.category_durations_minutes.sum { |_, m| m } }.max || 0, 24 * 60].max %>
   <% category_order = @categories.keys %>
   <div class="daily-chart">
+    <% [12, 24].each do |hours| %>
+      <div class="chart-line" style="top: <%= 180 - (hours * 60.0 / chart_max * 180).round %>px;"><span><%= hours %>h</span></div>
+    <% end %>
     <% (@startdate..@enddate).each do |day| %>
       <% page = @pages_thisweek.find { |p| p.date == day } %>
       <div class="chart-col">
@@ -201,7 +221,7 @@
   <% @pages_thisweek.each do |page| %>
     <div class="day-section">
       <div class="day-header">
-        <a href="<%= date_path(page.date.strftime("%Y%m%d")) %>">
+        <a href="<%= log_path(page.date.strftime("%Y%m%d")) %>">
           <%= page.date.strftime("%Y/%m/%d %a") %>
         </a>
       </div>

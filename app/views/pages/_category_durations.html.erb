@@ -1,0 +1,28 @@
+<style>
+  .category_durations {
+    padding: 0;
+  }
+
+  .category_durations span {
+    margin-bottom: 0.2rem;
+    font-size: 1rem;
+  }
+
+  .legend-color {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    margin-right: 5px;
+    border-radius: 3px;
+  }
+</style>
+
+<div class="category_durations">
+  <% page.category_durations_minutes.each do |category, duration| %>
+    <span>
+      <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
+      <%= category %>
+      <span class="category"><%= minutes_to_hm(duration) %></span>
+    </span>
+  <% end %>
+</div>

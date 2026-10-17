@@ -9,9 +9,7 @@ class PagesController < ApplicationController
   end
 
   def today
-    now = Time.now.in_time_zone(Setting.instance.timezone.presence || "Tokyo")
-    date = now.hour < 4 ? now.to_date - 1.day : now.to_date
-    redirect_to date_path(date.strftime("%Y%m%d"))
+    redirect_to log_path(current_date.strftime("%Y%m%d"))
   end
 
   def show
@@ -103,6 +101,7 @@ class PagesController < ApplicationController
   def create
     @page.assign_attributes(page_params)
     if @page.save
+      @page.add_missing_sleep_before!(current_date)
       @page.reconcile_sleep_boundaries!
       redirect_to date_path(@date.strftime("%Y%m%d"))
     else
@@ -115,6 +114,7 @@ class PagesController < ApplicationController
     attributes = page_params
     if @page.update(attributes)
       created_ids = created_record_ids(attributes)
+      @page.add_missing_sleep_before!(current_date)
       @page.reconcile_sleep_boundaries!
       return render json: { ids: created_ids } if request.format.json?
       return redirect_to log_path(@date.strftime("%Y%m%d")) if params[:from] == "log"
@@ -142,6 +142,15 @@ class PagesController < ApplicationController
 
   def log
     @categories = Setting.instance.categories
+    @tasks = Task.on(@date)
+    return unless @date == current_date
+
+    @left_in_week = Task.left_in_week(@date)
+    @pace = Page.weekly_pace(@date, Time.current)
+    context = { date: @date, rain: WeatherService.rain? }
+    @routines = PlannerList.where(daily: true).order(:id).map do |list|
+      { title: list.title, category: list.category, items: list.planner_items.select { |item| item.task? && item.visible?(context) } }
+    end
   end
 
   def analyze

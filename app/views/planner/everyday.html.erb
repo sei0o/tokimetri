@@ -19,6 +19,13 @@
 
       <%= render "planner/add_form", list: section[:list] %>
 
+      <%= form_with model: section[:list] do |f| %>
+        <%= f.text_field :title %>
+        <%= f.select :category, @categories.keys, include_blank: true %>
+        <label><%= f.check_box :daily %> 毎日</label>
+        <%= f.submit "保存" %>
+      <% end %>
+
       <textarea readonly
                 placeholder="メモ..."
                 data-list-id="<%= section[:list].id %>"

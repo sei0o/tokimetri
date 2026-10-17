@@ -1,0 +1,34 @@
+<style>
+  .pace-bar {
+    position: relative;
+    height: 0.5rem;
+    margin: 2px 0;
+  }
+
+  .pace-bar div {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+
+  .pace-bar .mark {
+    width: 2px;
+    background: #000;
+  }
+</style>
+
+<p>
+  <% @pace.each do |category, (minutes, diff, weekly)| %>
+    <span style="color: <%= @categories[category] %>">
+      <%= category %> <strong><%= (minutes / 60.0).round %></strong>/<%= (weekly / 60.0).round %>h<% if diff.abs >= 60 %> <%= format("%+d", (diff / 60.0).round) %><% end %>
+    </span>
+  <% end %>
+</p>
+
+<% @pace.each do |category, (minutes, diff, weekly)| %>
+  <% next unless weekly.positive? %>
+  <div class="pace-bar" style="background: <%= hex_to_pastel(@categories[category]) %>" title="<%= category %>">
+    <div style="width: <%= [ minutes / weekly, 1 ].min * 100 %>%; background: <%= @categories[category] %>"></div>
+    <div class="mark" style="left: <%= [ (minutes - diff) / weekly, 1 ].min * 100 %>%"></div>
+  </div>
+<% end %>

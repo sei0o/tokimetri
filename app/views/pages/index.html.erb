@@ -67,7 +67,7 @@
         <% date=Date.new(@month.year, @month.month, day) %>
           <% page=@pages.find { |p| p.date==date } %>
             <div class="calendar-day">
-              <a href="/day/<%= date.strftime('%Y%m%d') %>" class="<%= page ? 'exists' : 'nonexist' %>">
+              <a href="/log/<%= date.strftime('%Y%m%d') %>" class="<%= page ? 'exists' : 'nonexist' %>">
                 <%= day %>
               </a>
             </div>

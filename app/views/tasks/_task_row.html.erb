@@ -1,0 +1,13 @@
+<tr style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
+  <td class="when"><%= when_label(task, @today) %></td>
+  <td><%= text_field_tag "tasks[#{task.id}][content]", task.content %></td>
+  <td class="category">
+    <%= select_tag "tasks[#{task.id}][category]", options_for_select(@categories.keys, task.category),
+          include_blank: true, onchange: "this.form.requestSubmit()" %>
+  </td>
+  <td class="actions">
+    <% moves.each do |to, label| %>
+      <button name="move[<%= task.id %>]" value="<%= to %>"><%= label %></button>
+    <% end %>
+  </td>
+</tr>

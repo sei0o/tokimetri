@@ -1,0 +1,47 @@
+<section id="plan" data-controller="plan" data-plan-date-value="<%= @date.iso8601 %>">
+  <h2>今日</h2>
+  <table>
+    <tbody data-plan-target="today">
+      <%= render partial: "tasks/plan_row", collection: @tasks, as: :task %>
+    </tbody>
+  </table>
+  <input type="text" placeholder="追加" data-action="keydown.enter->plan#add">
+
+  <% if @left_in_week.present? %>
+    <details>
+      <summary>今週の残り (<%= @left_in_week.size %>)</summary>
+      <table>
+        <tbody>
+          <%= render partial: "tasks/plan_row", collection: @left_in_week, as: :task, locals: { movable: true } %>
+        </tbody>
+      </table>
+    </details>
+  <% end %>
+
+  <% if @routines.present? %>
+    <h2>ルーティン</h2>
+    <table>
+      <tbody>
+        <% @routines.each do |routine| %>
+          <tr style="background-color: <%= hex_to_pastel(@categories[routine[:category]]) %>">
+            <td>
+              <details>
+                <summary><%= routine[:title] %></summary>
+                <ul>
+                  <% routine[:items].each do |item| %>
+                    <li><label><input type="checkbox"> <%= item.content %></label></li>
+                  <% end %>
+                </ul>
+              </details>
+            </td>
+            <td class="actions">
+              <button type="button" data-action="plan#start" data-plan-what-param="<%= routine[:title] %>" data-plan-category-param="<%= routine[:category] %>">始める</button>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+
+  <p><%= link_to "inbox", tasks_path %></p>
+</section>

@@ -74,6 +74,21 @@
     color: #666;
   }
 
+  #plan table {
+    border-collapse: collapse;
+  }
+
+  #plan td {
+    padding: 2px 4px;
+    vertical-align: top;
+  }
+
+  #plan ul {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 1rem;
+  }
+
   .guide {
     color: #999;
     font-size: 0.9rem;
@@ -99,14 +114,21 @@
   <a href="/log/<%= @nextweek %>">▼</a>
 </nav>
 
+<%= render "weekly_pace" if @pace.present? %>
+
 <%= link_to "テキストで書く", date_path(@page.date.strftime("%Y%m%d")) %>
 
 <% category_options = @categories.map { |cat, color| [ cat, cat, { data: { color: hex_to_pastel(color) } } ] } %>
 
 <%= form_with model: @page, url: update_date_page_path(@page.date.strftime("%Y%m%d")), method: :patch,
       data: { controller: "log", log_date_value: @page.date.iso8601,
-              action: "focusin->log#track input->log#refresh input->log#scheduleSave change->log#refresh change->log#scheduleSave keydown->log#key" } do |f| %>
+              action: "plan:start@window->log#start focusin->log#track input->log#refresh input->log#scheduleSave change->log#refresh change->log#scheduleSave keydown->log#key" } do |f| %>
   <%= hidden_field_tag :from, "log" %>
+
+  <nav>
+    <%= f.submit "保存" %>
+    <span data-log-target="status" class="save-status"></span>
+  </nav>
 
   <table id="log">
     <thead>
@@ -147,7 +169,9 @@
   <nav>
     <button type="button" data-action="log#finishRow">次の行へ</button>
     <button type="button" data-action="log#addNote">メモを追加</button>
-    <%= f.submit "保存" %>
-    <span data-log-target="status" class="save-status"></span>
   </nav>
 <% end %>
+
+<%= render "category_durations", page: @page %>
+
+<%= render "tasks/plan" %>

@@ -4,6 +4,7 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
   setup do
     sign_in
     @date = Date.new(2026, 9, 9)
+    travel_to Time.zone.local(2026, 9, 9, 12, 0)
   end
 
   test "log ページが開く" do
@@ -151,5 +152,25 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     page.apply_parsed_records([ { "start" => "2026-09-09 11:00", "end" => "2026-09-09 12:00", "what" => "新しい", "category" => "研究" } ])
 
     assert_equal [ "残るメモ", "新しい", "就寝" ], page.records.reload.map(&:what)
+  end
+  test "保存すると前日に睡眠を補い、書いている日には足さない" do
+    yesterday = Page.create!(date: @date - 1.day)
+    yesterday.records.create!(kind: "activity", start_time: "2026-09-08 22:00", end_time: "2026-09-08 23:30", what: "読書", category: "趣味")
+
+    patch update_date_page_path(@date.strftime("%Y%m%d")), as: :json, params: {
+      page: {
+        date: @date,
+        records_attributes: {
+          "100" => { kind: "activity", start_time: "8:00", end_time: "9:00", what: "朝食", category: "食事" }
+        }
+      }
+    }
+    assert_response :success
+
+    sleep_record = yesterday.records.activities.last
+    assert_equal "睡眠", sleep_record.category
+    assert_equal Time.zone.local(2026, 9, 8, 23, 30), sleep_record.start_time
+    assert_equal Time.zone.local(2026, 9, 9, 8, 0), sleep_record.end_time
+    assert_equal [ "朝食" ], Page.find_by(date: @date).records.map(&:what)
   end
 end

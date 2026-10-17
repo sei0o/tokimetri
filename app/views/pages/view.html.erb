@@ -158,7 +158,7 @@
 <% activities_by_date(@pages).each do |date, v| %>
   <div class="hday-line">
     <div class="date-header">
-      <a href="/day/<%= date.to_date.strftime("%Y%m%d") %>">
+      <a href="/log/<%= date.to_date.strftime("%Y%m%d") %>">
         <%= date.to_date.strftime("%m/%d") %>
       </a>
     </div>

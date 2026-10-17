@@ -1,0 +1,64 @@
+<style>
+  #tasks table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #tasks td {
+    padding: 2px 4px;
+  }
+
+  #tasks input[type=text], #tasks select {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    padding: 2px;
+  }
+
+  #tasks .category {
+    width: 8rem;
+  }
+
+  #tasks .when {
+    width: 5rem;
+    color: #999;
+  }
+
+  #tasks .actions {
+    width: 1%;
+    white-space: nowrap;
+  }
+</style>
+
+<%= form_with url: tasks_path, method: :patch, id: "tasks" do %>
+  <%# Enter で送ったときに押されるのは最初のボタンなので、保存を先に置く %>
+  <button>保存</button>
+
+  <h2>inbox</h2>
+  <table>
+    <tbody>
+      <% @inbox.each do |task| %>
+        <%= render "task_row", task: task,
+              moves: { today: "今日", tomorrow: "明日", week: "今週", delete: "削除" } %>
+      <% end %>
+      <tr>
+        <td></td>
+        <td><%= text_field_tag "new[]", nil, placeholder: "追加", autofocus: true %></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>今週</h2>
+  <table>
+    <tbody>
+      <% @planned.each do |task| %>
+        <%= render "task_row", task: task,
+              moves: { today: "今日", tomorrow: "明日", inbox: "inbox", delete: "削除" } %>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

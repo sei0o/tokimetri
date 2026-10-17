@@ -51,6 +51,8 @@ Rails.application.routes.draw do
   get "/planner/today", to: "planner#today", as: :planner_today
   get "/planner/meal", to: "planner#meal", as: :planner_meal
 
+  patch "/tasks", to: "tasks#update_all"
+  resources :tasks, only: %i[index create update destroy]
   resources :saved_searches, only: %i[create destroy]
   resources :planner_items, only: %i[create update destroy]
   resources :planner_lists, only: %i[update]

@@ -15,17 +15,7 @@
 
 <div data-controller="record-selection">
   <% if page.records.any? %>
-    <div class="category_durations">
-      <% page.category_durations_minutes.each do |category, duration| %>
-        <span>
-          <div class="legend-color" style="background-color: <%= @categories[category] %>;"></div>
-          <%= category %>
-          <span class="category">
-            <%= "#{duration/60}:#{(duration%60).to_s.rjust(2, '0')}" %>
-          </span>
-        </span>
-      <% end %>
-    </div>
+    <%= render "pages/category_durations", page: page %>
 
     <div class="selection-summary" data-record-selection-target="summary">
       選択: <strong data-record-selection-target="total">0:00</strong>

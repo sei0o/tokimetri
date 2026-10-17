@@ -94,7 +94,7 @@
             <% last_date = record.page.date %>
             <tr>
               <td colspan="5" class="day-separator">
-                <%= link_to record.page.date.strftime("%Y-%m-%d"), date_path(record.page.date.strftime("%Y%m%d")) %>
+                <%= link_to record.page.date.strftime("%Y-%m-%d"), log_path(record.page.date.strftime("%Y%m%d")) %>
               </td>
             </tr>
           <% end %>
@@ -108,7 +108,7 @@
     <h2>全文検索</h2>
     <% @matches.each do |match| %>
       <div style="margin-bottom: 20px;">
-        <h3><%= link_to match[:page].date.strftime("%Y-%m-%d"), date_path(match[:page].date.strftime("%Y%m%d")) %></h3>
+        <h3><%= link_to match[:page].date.strftime("%Y-%m-%d"), log_path(match[:page].date.strftime("%Y%m%d")) %></h3>
         <% match[:matches].each do |range| %>
           <p>
             <%= range.join("<br>").gsub(q, "<span class='match'>#{q}</span>").html_safe %>

@@ -11,6 +11,7 @@ class PlannerController < ApplicationController
   end
 
   def everyday
+    @categories = Setting.instance.categories
     @context = { date: Date.current, rain: false }
     @lists = %w[morning leave_home evening].filter_map do |slug|
       list = PlannerList.find_by(slug: slug)
