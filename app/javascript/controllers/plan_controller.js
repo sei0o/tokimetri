@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { durationToMinutes, toHM } from "minutes"
 
 const request = (url, method, body) => fetch(url, {
   method,
@@ -8,7 +9,7 @@ const request = (url, method, body) => fetch(url, {
 
 // ページを読み直すと log の書きかけが消えるので、ここは全部 fetch で済ませる
 export default class extends Controller {
-  static targets = ["today"]
+  static targets = ["today", "total"]
   static values = { date: String }
 
   async add(event) {
@@ -28,11 +29,15 @@ export default class extends Controller {
 
     this.todayTarget.insertAdjacentHTML("beforeend", await response.text())
     input.value = ""
+    this.refreshTotal()
   }
 
   async done({ params: { id }, target }) {
     const response = await request(`/tasks/${id}`, "DELETE")
-    if (response.ok) target.closest("tr").remove()
+    if (!response.ok) return
+
+    target.closest("tr").remove()
+    this.refreshTotal()
   }
 
   async today({ params: { id }, target }) {
@@ -45,12 +50,38 @@ export default class extends Controller {
     const row = target.closest("tr")
     target.remove()
     this.todayTarget.append(row)
+    this.refreshTotal()
+  }
+
+  // 行の欄を書き換えたらその場で保存する
+  async save({ target }) {
+    const row = target.closest("tr")
+    const estimate = row.querySelector("[name='task[estimate_minutes]']")
+    const minutes = durationToMinutes(estimate.value)
+    if (minutes !== null) estimate.value = toHM(minutes)
+
+    const body = new FormData()
+    row.querySelectorAll("[name^='task[']").forEach(field => body.append(field.name, field.value))
+
+    await request(`/tasks/${row.dataset.id}`, "PATCH", body)
+    this.refreshTotal()
+  }
+
+  refreshTotal() {
+    const minutes = [...this.todayTarget.rows]
+      .reduce((sum, row) => sum + (durationToMinutes(row.querySelector("[name='task[estimate_minutes]']").value) ?? 0), 0)
+    this.totalTarget.textContent = toHM(minutes)
   }
 
   // log に行を始めてもらう。タスクなら plan からは消える
   start({ params: { id, what, category }, target }) {
-    this.dispatch("start", { detail: { what, category } })
-    target.closest("tr").querySelector("details")?.setAttribute("open", "")
+    const row = target.closest("tr")
+    if (id) {
+      what = row.querySelector("[name='task[content]']").value
+      category = row.querySelector("[name='task[category]']").value
+    }
+    this.dispatch("start", { detail: { what, category, project: row.dataset.project } })
+    row.querySelector("details")?.setAttribute("open", "")
     if (id) this.done({ params: { id }, target })
   }
 }

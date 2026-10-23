@@ -1,0 +1,38 @@
+<%= form_with url: projects_path, method: :patch do %>
+  <button>保存</button>
+
+  <h2>プロジェクト</h2>
+  <table class="sheet">
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th>カテゴリ</th>
+        <th>フィルタ</th>
+        <th>合計</th>
+        <th>タスク</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @projects.each do |project| %>
+        <tr style="background-color: <%= hex_to_pastel(@categories[project.category]) %>">
+          <td><%= text_field_tag "projects[#{project.id}][name]", project.name %></td>
+          <td class="category">
+            <%= select_tag "projects[#{project.id}][category]", options_for_select(@categories.keys, project.category),
+                  include_blank: true, onchange: "this.form.requestSubmit()" %>
+          </td>
+          <td><%= text_field_tag "projects[#{project.id}][query]", project.query, placeholder: "スペース区切りのどれかを含む行" %></td>
+          <td class="duration"><%= minutes_to_hm(project.minutes) %></td>
+          <td class="duration"><%= project.tasks.size %></td>
+          <td class="actions"><%= link_to "開く", project %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <td><%= text_field_tag "new[name]", nil, placeholder: "追加", autofocus: true %></td>
+        <td class="category"><%= select_tag "new[category]", options_for_select(@categories.keys), include_blank: true %></td>
+        <td><%= text_field_tag "new[query]", nil %></td>
+        <td colspan="3"></td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>

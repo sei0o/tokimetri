@@ -15,7 +15,7 @@
 
 <tr class="record" style="height: <%= cap_height ? '6rem' : "#{[1, 1 + (record.duration_minutes || 0 - 20) / 20.0].max}rem" %>; background-color: <%= hex_to_pastel(categories[record.category]) %>;" data-action="click->record-selection#toggleRow">
   <td>
-    <input type="checkbox" 
+    <input type="checkbox" name="record_ids[]" value="<%= record.id %>" form="assign"
            data-record-selection-target="checkbox" 
            data-action="change->record-selection#toggle"
            data-duration="<%= record.duration_minutes || 0 %>">

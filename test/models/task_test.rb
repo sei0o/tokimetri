@@ -33,5 +33,15 @@ class TaskTest < ActiveSupport::TestCase
 
     task.move("inbox", @today)
     assert_nil task.week
+
+    task.move("2026-10-21", @today)
+    assert_equal [ Date.new(2026, 10, 21), Date.new(2026, 10, 19) ], [ task.date, task.week ]
+
+    task.move("next_week", @today)
+    assert_equal [ nil, Date.new(2026, 10, 19) ], [ task.date, task.week ]
+  end
+
+  test "見積もりは「1:30」でも「90」でも 90 分" do
+    assert_equal [ 90, 90, nil, nil ], [ "1:30", "90", "", "そのうち" ].map { Task.new(estimate_minutes: _1).estimate_minutes }
   end
 end

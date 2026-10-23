@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_10_16_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_10_23_000003) do
   create_table "action_text_rich_texts", force: :cascade do |t|
     t.string "name", null: false
     t.text "body"
@@ -73,14 +73,25 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_000002) do
   end
 
   create_table "planner_lists", force: :cascade do |t|
-    t.string "slug", null: false
+    t.string "slug"
     t.string "title", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.text "note"
-    t.boolean "daily", default: false, null: false
     t.string "category"
+    t.string "wdays", default: "", null: false
+    t.string "period"
+    t.integer "estimate_minutes"
     t.index ["slug"], name: "index_planner_lists_on_slug", unique: true
+  end
+
+  create_table "projects", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "category"
+    t.string "query"
+    t.text "note"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "records", force: :cascade do |t|
@@ -92,7 +103,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "kind", default: "activity", null: false
+    t.integer "project_id"
     t.index ["page_id"], name: "index_records_on_page_id"
+    t.index ["project_id"], name: "index_records_on_project_id"
   end
 
   create_table "saved_searches", force: :cascade do |t|
@@ -127,7 +140,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "category"
+    t.integer "estimate_minutes"
+    t.integer "project_id"
     t.index ["date"], name: "index_tasks_on_date"
+    t.index ["project_id"], name: "index_tasks_on_project_id"
     t.index ["week"], name: "index_tasks_on_week"
   end
 
@@ -141,5 +157,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_10_16_000002) do
 
   add_foreign_key "planner_items", "planner_lists"
   add_foreign_key "records", "pages"
+  add_foreign_key "records", "projects"
   add_foreign_key "sessions", "users"
+  add_foreign_key "tasks", "projects"
 end

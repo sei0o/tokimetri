@@ -20,6 +20,16 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_select "td.duration", text: "1:30"
   end
 
+  test "時刻は「1012」でも「10:12」として記録される" do
+    patch update_date_page_path(@date.strftime("%Y%m%d")), params: {
+      from: "log",
+      page: { date: @date, records_attributes: { "0" => { kind: "activity", start_time: "930", end_time: "1012", what: "研究" } } }
+    }
+
+    record = Page.find_by(date: @date).records.first
+    assert_equal [ "09:30", "10:12" ], [ record.start_time, record.end_time ].map { _1.strftime("%H:%M") }
+  end
+
   test "レコードとメモを作れる" do
     patch update_date_page_path(@date.strftime("%Y%m%d")), params: {
       from: "log",

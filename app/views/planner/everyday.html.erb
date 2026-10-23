@@ -1,47 +1,84 @@
-<div class="planner">
-  <div class="panel">
-    <h1>毎日のタスク</h1>
-    <div id="weather-note"></div>
-  </div>
+<style>
+  #routines .wdays {
+    white-space: nowrap;
+  }
+</style>
 
-  <% @lists.each do |section| %>
-    <div class="panel" data-controller="edit-mode">
-      <header>
-        <h2><%= section[:list].title %></h2>
-        <button data-action="click->edit-mode#toggle" data-edit-mode-target="toggle">編集</button>
-      </header>
+<%= form_with url: planner_lists_path, method: :patch, id: "routines" do %>
+  <button>保存</button>
 
-      <ul id="list_<%= section[:list].id %>_items">
-        <% section[:items].each do |item| %>
-          <%= render "planner/item", item: item %>
-        <% end %>
-      </ul>
-
-      <%= render "planner/add_form", list: section[:list] %>
-
-      <%= form_with model: section[:list] do |f| %>
-        <%= f.text_field :title %>
-        <%= f.select :category, @categories.keys, include_blank: true %>
-        <label><%= f.check_box :daily %> 毎日</label>
-        <%= f.submit "保存" %>
+  <h2>ルーティン</h2>
+  <table class="sheet">
+    <thead>
+      <tr>
+        <th>時間帯</th>
+        <th>名前</th>
+        <th>カテゴリ</th>
+        <th>見積もり</th>
+        <th>曜日</th>
+        <th>いつも</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @lists.each do |list| %>
+        <% name = "lists[#{list.id}]" %>
+        <tr style="background-color: <%= hex_to_pastel(@categories[list.category]) %>">
+          <td class="time"><%= select_tag "#{name}[period]", options_for_select(PlannerList::PERIODS, list.period), include_blank: true %></td>
+          <td><%= text_field_tag "#{name}[title]", list.title %></td>
+          <td class="category">
+            <%= select_tag "#{name}[category]", options_for_select(@categories.keys, list.category),
+                  include_blank: true, onchange: "this.form.requestSubmit()" %>
+          </td>
+          <td class="estimate"><%= minutes_field_tag "#{name}[estimate_minutes]", list.estimate_minutes %></td>
+          <td class="wdays">
+            <%= hidden_field_tag "#{name}[wdays][]", "", id: nil %>
+            <% PlannerList::WDAYS.each_with_index do |label, wday| %>
+              <label><%= check_box_tag "#{name}[wdays][]", wday, list.wdays.include?(wday.to_s), id: nil %><%= label %></label>
+            <% end %>
+          </td>
+          <td class="duration"><%= minutes_to_hm(list.typical_minutes(current_date)) if list.wdays.present? %></td>
+          <td class="actions"><%= link_to "開く", list %></td>
+        </tr>
       <% end %>
+      <tr>
+        <td class="time"><%= select_tag "new[period]", options_for_select(PlannerList::PERIODS), include_blank: true %></td>
+        <td><%= text_field_tag "new[title]", nil, placeholder: "追加" %></td>
+        <td class="category"><%= select_tag "new[category]", options_for_select(@categories.keys), include_blank: true %></td>
+        <td colspan="4"></td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>
 
-      <textarea readonly
-                placeholder="メモ..."
-                data-list-id="<%= section[:list].id %>"
-                data-controller="planner-note"
-                data-action="blur->planner-note#save"><%= section[:list].note %></textarea>
-    </div>
-  <% end %>
-</div>
-
-<script>
-  fetch("/planner/weather")
-    .then(r => r.json())
-    .then(w => {
-      if (!w) return;
-      const text = (w.rain ? "雨が降りそうです" : "天気は大きく崩れなさそう")
-        + (w.max_temp != null ? ` ／最高 ${w.max_temp}°C・最低 ${w.min_temp}°C` : "");
-      document.getElementById("weather-note").textContent = text;
-    });
-</script>
+<% if @candidates.any? %>
+  <h2>候補</h2>
+  <p>最近4週間に4日以上あったのに、どのルーティンにも当たらない行</p>
+  <table class="sheet">
+    <thead>
+      <tr>
+        <th>名前</th>
+        <th class="category">カテゴリ</th>
+        <th class="duration">日数</th>
+        <th class="duration">いつも</th>
+        <th>曜日</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @candidates.each do |candidate| %>
+        <tr style="background-color: <%= hex_to_pastel(@categories[candidate[:category]]) %>">
+          <td><%= candidate[:title] %></td>
+          <td class="category"><%= candidate[:category] %></td>
+          <td class="duration"><%= candidate[:days] %></td>
+          <td class="duration"><%= minutes_to_hm(candidate[:estimate_minutes]) %></td>
+          <td><%= candidate[:wdays].map { PlannerList::WDAYS[_1] }.join %></td>
+          <td class="actions">
+            <%= button_to "ルーティンにする", planner_lists_path,
+                  params: { planner_list: candidate.slice(:title, :category, :estimate_minutes, :wdays) } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

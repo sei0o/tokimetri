@@ -1,10 +1,15 @@
-<tr id="task_<%= task.id %>" style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
+<tr id="task_<%= task.id %>" data-id="<%= task.id %>" data-project="<%= task.project_id %>" style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
   <td class="check"><input type="checkbox" data-action="plan#done" data-plan-id-param="<%= task.id %>"></td>
-  <td><%= task.content %></td>
+  <td><%= text_field_tag "task[content]", task.content, id: nil, data: { action: "change->category#guess change->plan#save" } %></td>
+  <td class="estimate"><%= minutes_field_tag "task[estimate_minutes]", task.estimate_minutes, id: nil, data: { action: "change->plan#save" } %></td>
+  <td class="category">
+    <%= select_tag "task[category]", options_for_select(category_options, task.category), id: nil, include_blank: true, class: "category",
+          data: { action: "change->category#colorize input->category#accept change->plan#save" } %>
+  </td>
   <td class="actions">
     <% if local_assigns[:movable] %>
       <button type="button" data-action="plan#today" data-plan-id-param="<%= task.id %>">今日へ</button>
     <% end %>
-    <button type="button" data-action="plan#start" data-plan-id-param="<%= task.id %>" data-plan-what-param="<%= task.content %>" data-plan-category-param="<%= task.category %>">始める</button>
+    <button type="button" data-action="plan#start" data-plan-id-param="<%= task.id %>">始める</button>
   </td>
 </tr>

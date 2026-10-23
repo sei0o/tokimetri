@@ -1,9 +1,13 @@
 class Record < ApplicationRecord
   belongs_to :page
+  belongs_to :project, optional: true
 
   enum :kind, { activity: "activity", note: "note" }
 
   scope :activities, -> { where(kind: "activity") }
+
+  before_save :join_matching_project, if: -> { activity? && project_id.nil? && (new_record? || what_changed?) }
+  before_save :follow_owner_category
 
   # これ未満は当たらないので何も返さない
   SIMILARITY = 0.8
@@ -16,6 +20,16 @@ class Record < ApplicationRecord
   end
 
   # 過去に書いたものから、文字bigramが近いものを探してカテゴリを引く
+  def join_matching_project
+    self.project = Project.matching(self)
+  end
+
+  # プロジェクトやルーティンの行は、そのカテゴリに揃える
+  def follow_owner_category
+    owner = project || PlannerList.routines.find { _1.matches?(self) }
+    self.category = owner.category if owner&.category.present?
+  end
+
   def self.guess_category(text)
     target = bigrams(text)
     return if target.empty?

@@ -6,13 +6,14 @@
     <%= form.text_field :end_time, value: extended_time(form.object.end_time, @page.date), class: "end" %>
   </td>
   <td class="duration"><%= minutes_to_hm(form.object.duration_minutes) if form.object.duration_minutes %></td>
-  <td><%= form.text_field :what, data: { action: "change->log#guessCategory" } %></td>
+  <td><%= form.text_field :what, data: { action: "change->category#guess" } %></td>
   <td>
-    <%= form.select :category, categories, { include_blank: true }, { data: { action: "change->log#colorize input->log#accept" } } %>
+    <%= form.select :category, categories, { include_blank: true }, { class: "category", data: { action: "change->category#colorize input->category#accept" } } %>
   </td>
   <td class="destroy">
     <%= form.check_box :_destroy %>
     <%= form.hidden_field :kind, value: "activity" %>
+    <%= form.hidden_field :project_id, class: "project" %>
     <%= form.hidden_field :id if form.object.persisted? %>
   </td>
 </tr>

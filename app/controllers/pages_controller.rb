@@ -29,6 +29,7 @@ class PagesController < ApplicationController
 
   def search
     @saved_searches = SavedSearch.order(:query)
+    @projects = Project.order(:name)
     @categories = Setting.instance.categories
     if params[:q].present?
       @records = Record.includes(:page)
@@ -143,13 +144,15 @@ class PagesController < ApplicationController
   def log
     @categories = Setting.instance.categories
     @tasks = Task.on(@date)
+    @disposable = DisposableTime.new(@date, current_time)
     return unless @date == current_date
 
     @left_in_week = Task.left_in_week(@date)
-    @pace = Page.weekly_pace(@date, Time.current)
+    @pace = Page.weekly_pace(@date, current_time)
     context = { date: @date, rain: WeatherService.rain? }
-    @routines = PlannerList.where(daily: true).order(:id).map do |list|
-      { title: list.title, category: list.category, items: list.planner_items.select { |item| item.task? && item.visible?(context) } }
+    @routines = PlannerList.on(@date).map do |list|
+      { list: list, items: list.planner_items.select { |item| item.task? && item.visible?(context) },
+        typical: list.typical_minutes(@date), done: list.records_on(@page) }
     end
   end
 
@@ -220,9 +223,7 @@ class PagesController < ApplicationController
       next unless page
 
       records_data = JSON.parse(result["response"]["body"]["choices"][0]["message"]["content"])["records"]
-      page.apply_parsed_records(
-        records_data.map { |r| OpenStruct.new(r) }
-      )
+      page.apply_parsed_records(records_data)
       count += 1
     end
 
@@ -308,10 +309,12 @@ class PagesController < ApplicationController
 
   def page_params
     permitted = params.require(:page).permit(:date, :content, :note,
-      records_attributes: [ :id, :kind, :start_time, :end_time, :what, :category, :_destroy ])
+      records_attributes: [ :id, :kind, :start_time, :end_time, :what, :category, :project_id, :_destroy ])
 
     prev_end = nil
     permitted[:records_attributes]&.each_value do |attrs|
+      # 空のときに送ると、フィルタや検索画面で入れたプロジェクトが外れてしまう
+      attrs.delete(:project_id) if attrs[:project_id].blank?
       attrs[:start_time] = parse_time(attrs[:start_time])
       attrs[:end_time] = parse_time(attrs[:end_time])
 
@@ -335,11 +338,11 @@ class PagesController < ApplicationController
     keys.zip(created.map(&:id)).to_h
   end
 
-  # 「25:30」のような 24 時超えの表記をその日からのオフセットとして読む
+  # 「25:30」のような 24 時超えの表記をその日からのオフセットとして読む。「1012」は 10:12
   def parse_time(value)
     return nil if value.blank?
 
-    if m = value.match(/\A(-?\d+):(\d{2})\z/)
+    if m = value.strip.match(/\A(-?\d+):?(\d{2})\z/)
       @date.in_time_zone + m[1].to_i.hours + m[2].to_i.minutes
     else
       value

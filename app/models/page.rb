@@ -81,14 +81,17 @@ class Page < ApplicationRecord
     }
   end
 
+  # 作り直してもプロジェクトに入れた行は残るよう、開始時刻で引き継ぐ
   def apply_parsed_records(records_data)
+    projects = records.activities.where.not(project_id: nil).to_h { [ _1.start_time&.to_i, _1.project_id ] }
     records.activities.destroy_all
     records_data.each do |record|
       start_val = record.respond_to?(:start) ? record.start : record["start"]
       end_val   = record.respond_to?(:end)   ? record.end   : record["end"]
       what_val  = record.respond_to?(:what)  ? record.what  : record["what"]
       cat_val   = record.respond_to?(:category) ? record.category : record["category"]
-      self.records.create(start_time: start_val, end_time: end_val, what: what_val, category: cat_val)
+      start_time = start_val && Time.zone.parse(start_val)
+      self.records.create(start_time: start_time, end_time: end_val, what: what_val, category: cat_val, project_id: projects[start_time&.to_i])
     end
     add_sleep_if_missing
     reconcile_sleep_boundaries!
@@ -147,7 +150,7 @@ class Page < ApplicationRecord
   # 月曜に起きた瞬間をゼロとして積み上がる今週の時間と、いつもの同じ時点との差、週平均
   def self.weekly_pace(today, now)
     monday = today.beginning_of_week
-    usual = includes(:records).where(date: ...monday).order(date: :desc).limit(120).select(&:recorded?).first(28)
+    usual = usual(today)
     return {} if usual.empty?
 
     days = includes(:records).where(date: monday...today).select(&:recorded?)
@@ -163,6 +166,11 @@ class Page < ApplicationRecord
       daily = average.fetch(category, 0)
       [ category, [ minutes, minutes - daily * elapsed, daily * 7 ] ]
     end
+  end
+
+  # 先週までの記録がちゃんとある日を、新しいほうから4週間分
+  def self.usual(today)
+    includes(:records).where(date: ...today.beginning_of_week).order(date: :desc).limit(120).select(&:recorded?).first(28)
   end
 
   def category_minutes_until(now)

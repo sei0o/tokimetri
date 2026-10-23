@@ -1,10 +1,14 @@
 # どこにあるかは date と week で決まる。
 # 終わらなかった日のタスクは今週に、終わらなかった週のタスクは inbox に戻って見える
 class Task < ApplicationRecord
+  belongs_to :project, optional: true
+
+  attribute :estimate_minutes, MinutesType.new
+
   validates :content, presence: true
 
   before_save { self.week = date.beginning_of_week if date }
-  before_create { self.category = Record.guess_category(content) if category.blank? }
+  before_create { self.category = project&.category.presence || Record.guess_category(content) if category.blank? }
 
   scope :ordered, -> { order(:position, :id) }
   scope :on, ->(date) { where(date: date).ordered }
@@ -14,13 +18,16 @@ class Task < ApplicationRecord
 
   def self.next_position = maximum(:position).to_i + 1
 
+  # to は日付（2026-10-24）か、日を決めない行き先
   def move(to, today)
     case to
-    when "today"    then update(date: today)
-    when "tomorrow" then update(date: today + 1.day)
-    when "week"     then update(date: nil, week: today.beginning_of_week)
-    when "inbox"    then update(date: nil, week: nil)
-    when "delete"   then destroy
+    when "today"     then update(date: today)
+    when "tomorrow"  then update(date: today + 1.day)
+    when "week"      then update(date: nil, week: today.beginning_of_week)
+    when "next_week" then update(date: nil, week: today.next_week)
+    when "inbox"     then update(date: nil, week: nil)
+    when "delete"    then destroy
+    else                  update(date: Date.iso8601(to))
     end
   end
 end

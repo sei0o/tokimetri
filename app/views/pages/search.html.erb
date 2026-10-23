@@ -23,6 +23,15 @@
     <%= button_to "検索条件を保存", saved_searches_path, params: { query: q } %>
   <% end %>
 
+  <% if @projects.any? %>
+    <%= form_with url: records_projects_path, id: "assign" do %>
+      <%= hidden_field_tag :term, q %>
+      <%= select_tag :project_id, options_from_collection_for_select(@projects, :id, :name) %>
+      <button>選んだ行をプロジェクトに入れる</button>
+      <button formaction="<%= terms_projects_path %>">この検索をフィルタに足す</button>
+    <% end %>
+  <% end %>
+
   <% if @stats %>
     <div style="background-color: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 4px;">
       <strong>統計情報</strong><br>

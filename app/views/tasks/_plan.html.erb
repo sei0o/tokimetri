@@ -1,16 +1,23 @@
-<section id="plan" data-controller="plan" data-plan-date-value="<%= @date.iso8601 %>">
-  <h2>今日</h2>
-  <table>
+<section id="plan" data-controller="plan category" data-plan-date-value="<%= @date.iso8601 %>">
+  <h2>今日 <span data-plan-target="total"><%= minutes_to_hm(@tasks.sum(:estimate_minutes)) %></span></h2>
+  <table class="sheet">
+    <%= render "tasks/plan_columns" %>
     <tbody data-plan-target="today">
       <%= render partial: "tasks/plan_row", collection: @tasks, as: :task %>
     </tbody>
+    <tfoot>
+      <tr>
+        <td></td>
+        <td><input type="text" placeholder="追加" data-action="keydown.enter->plan#add"></td>
+      </tr>
+    </tfoot>
   </table>
-  <input type="text" placeholder="追加" data-action="keydown.enter->plan#add">
 
   <% if @left_in_week.present? %>
     <details>
-      <summary>今週の残り (<%= @left_in_week.size %>)</summary>
-      <table>
+      <summary>今週の残り (<%= @left_in_week.size %>) <%= minutes_to_hm(@left_in_week.sum(:estimate_minutes)) %></summary>
+      <table class="sheet">
+        <%= render "tasks/plan_columns" %>
         <tbody>
           <%= render partial: "tasks/plan_row", collection: @left_in_week, as: :task, locals: { movable: true } %>
         </tbody>
@@ -20,13 +27,16 @@
 
   <% if @routines.present? %>
     <h2>ルーティン</h2>
-    <table>
+    <table class="sheet">
+      <%= render "tasks/plan_columns" %>
       <tbody>
         <% @routines.each do |routine| %>
-          <tr style="background-color: <%= hex_to_pastel(@categories[routine[:category]]) %>">
+          <% list = routine[:list] %>
+          <tr style="background-color: <%= hex_to_pastel(@categories[list.category]) %>">
+            <td class="check"><%= list.period %></td>
             <td>
               <details>
-                <summary><%= routine[:title] %></summary>
+                <summary><%= list.title %></summary>
                 <ul>
                   <% routine[:items].each do |item| %>
                     <li><label><input type="checkbox"> <%= item.content %></label></li>
@@ -34,14 +44,22 @@
                 </ul>
               </details>
             </td>
+            <td class="duration">
+              <% if routine[:done].any?(&:end_time) %>
+                済 <%= minutes_to_hm(routine[:done].sum { _1.duration_minutes.to_i }) %>
+              <% elsif routine[:done].any? %>
+                進行中
+              <% else %>
+                <%= minutes_to_hm(routine[:typical]) %>
+              <% end %>
+            </td>
+            <td class="category"><%= list.category %></td>
             <td class="actions">
-              <button type="button" data-action="plan#start" data-plan-what-param="<%= routine[:title] %>" data-plan-category-param="<%= routine[:category] %>">始める</button>
+              <button type="button" data-action="plan#start" data-plan-what-param="<%= list.title %>" data-plan-category-param="<%= list.category %>">始める</button>
             </td>
           </tr>
         <% end %>
       </tbody>
     </table>
   <% end %>
-
-  <p><%= link_to "inbox", tasks_path %></p>
 </section>

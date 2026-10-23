@@ -1,0 +1,33 @@
+<%# days: { page => records }。remove を渡すと「外す」の列が出る %>
+<table class="sheet">
+  <thead>
+    <tr>
+      <th>開始</th>
+      <th>終了</th>
+      <th>経過</th>
+      <th>やったこと</th>
+      <th>カテゴリ</th>
+      <% if local_assigns[:remove] %><th class="actions">外す</th><% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% days.each do |page, records| %>
+      <tr class="day">
+        <td colspan="2"><%= link_to page.date.strftime("%Y/%m/%d %a"), log_path(page.date.strftime("%Y%m%d")) %></td>
+        <td class="duration"><%= minutes_to_hm(records.sum { _1.duration_minutes.to_i }) %></td>
+      </tr>
+      <% records.each do |record| %>
+        <tr style="background-color: <%= hex_to_pastel(@categories[record.category]) %>">
+          <td class="time"><%= record.start_time&.strftime("%H:%M") %></td>
+          <td class="time"><%= record.end_time&.strftime("%H:%M") %></td>
+          <td class="duration"><%= minutes_to_hm(record.duration_minutes) if record.duration_minutes %></td>
+          <td><%= record.what %></td>
+          <td class="category"><%= record.category %></td>
+          <% if local_assigns[:remove] %>
+            <td class="actions"><%= check_box_tag "remove[]", record.id, false, id: nil %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    <% end %>
+  </tbody>
+</table>

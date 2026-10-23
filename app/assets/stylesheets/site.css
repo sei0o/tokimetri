@@ -61,6 +61,74 @@ body {
   }
 }
 
+/* 毎日の記録と同じ見た目の表 */
+table.sheet {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.sheet th {
+  text-align: left;
+  font-weight: normal;
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.sheet th, .sheet td {
+  padding: 2px 4px;
+}
+
+.sheet input, .sheet select, .sheet textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 2px;
+}
+
+.sheet input:focus, .sheet select:focus, .sheet textarea:focus {
+  outline: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+.sheet input[type=checkbox] {
+  width: auto;
+}
+
+.sheet .time {
+  width: 4rem;
+}
+
+.sheet .duration, .sheet .when {
+  width: 4rem;
+  color: #999;
+}
+
+.sheet .estimate {
+  width: 4rem;
+}
+
+.sheet .category {
+  width: 8rem;
+}
+
+.sheet select.guessed {
+  font-style: italic;
+}
+
+.sheet .actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.sheet .day td {
+  padding-top: 1rem;
+}
+
+.formula {
+  opacity: 0.6;
+}
+
 /* Planner */
 .planner {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;

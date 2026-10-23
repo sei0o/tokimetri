@@ -1,13 +1,17 @@
 <tr style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
-  <td class="when"><%= when_label(task, @today) %></td>
-  <td><%= text_field_tag "tasks[#{task.id}][content]", task.content %></td>
+  <td><%= text_field_tag "tasks[#{task.id}][content]", task.content, data: { action: "change->category#guess" } %></td>
+  <td class="estimate"><%= minutes_field_tag "tasks[#{task.id}][estimate_minutes]", task.estimate_minutes %></td>
   <td class="category">
-    <%= select_tag "tasks[#{task.id}][category]", options_for_select(@categories.keys, task.category),
-          include_blank: true, onchange: "this.form.requestSubmit()" %>
+    <%= select_tag "tasks[#{task.id}][category]", options_for_select(category_options, task.category),
+          include_blank: true, class: "category", oninput: "this.form.requestSubmit()",
+          data: { action: "change->category#colorize input->category#accept" } %>
   </td>
-  <td class="actions">
-    <% moves.each do |to, label| %>
-      <button name="move[<%= task.id %>]" value="<%= to %>"><%= label %></button>
-    <% end %>
+  <td class="category">
+    <%= select_tag "tasks[#{task.id}][project_id]", options_from_collection_for_select(@projects, :id, :name, task.project_id),
+          include_blank: true, oninput: "this.form.requestSubmit()" %>
+  </td>
+  <td class="category">
+    <%= select_tag "move[#{task.id}]", options_for_select(move_options(@today)),
+          include_blank: "移動", oninput: "this.form.requestSubmit()" %>
   </td>
 </tr>

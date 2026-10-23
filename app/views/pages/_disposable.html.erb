@@ -1,0 +1,11 @@
+<% if @date == current_date %>
+  <p>
+    残り可処分 <%= minutes_to_hm(@disposable.left_today) %>
+    / <%= disposable_formula(@disposable.parts(@date)) %>
+    / タスク <%= minutes_to_hm(@tasks.sum(:estimate_minutes)) %>
+  </p>
+<% elsif @date > current_date %>
+  <p>可処分 予定 <%= disposable_formula(@disposable.parts(@date)) %></p>
+<% elsif @page.recorded? %>
+  <p>可処分 実際 <%= disposable_formula(DisposableTime.actual(@page)) %></p>
+<% end %>

@@ -1,64 +1,47 @@
 <style>
   #tasks table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-
-  #tasks td {
-    padding: 2px 4px;
-  }
-
-  #tasks input[type=text], #tasks select {
-    width: 100%;
-    border: none;
-    background: transparent;
-    font: inherit;
-    color: inherit;
-    padding: 2px;
-  }
-
-  #tasks .category {
-    width: 8rem;
-  }
-
-  #tasks .when {
-    width: 5rem;
-    color: #999;
-  }
-
-  #tasks .actions {
-    width: 1%;
-    white-space: nowrap;
+    table-layout: fixed;
   }
 </style>
 
-<%= form_with url: tasks_path, method: :patch, id: "tasks" do %>
+<%= form_with url: tasks_path, method: :patch, id: "tasks", data: { controller: "category" } do %>
   <%# Enter で送ったときに押されるのは最初のボタンなので、保存を先に置く %>
   <button>保存</button>
 
-  <h2>inbox</h2>
-  <table>
-    <tbody>
-      <% @inbox.each do |task| %>
-        <%= render "task_row", task: task,
-              moves: { today: "今日", tomorrow: "明日", week: "今週", delete: "削除" } %>
-      <% end %>
+  <h2>inbox <%= minutes_to_hm(@inbox.sum(:estimate_minutes)) %></h2>
+  <table class="sheet">
+    <thead>
       <tr>
-        <td></td>
-        <td><%= text_field_tag "new[]", nil, placeholder: "追加", autofocus: true %></td>
-        <td></td>
+        <th>やること</th>
+        <th class="estimate">見積もり</th>
+        <th class="category">カテゴリ</th>
+        <th class="category">プロジェクト</th>
+        <th class="category">移動</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= render partial: "task_row", collection: @inbox, as: :task %>
+      <tr>
+        <td><%= text_field_tag "new[content]", nil, placeholder: "追加", autofocus: true, data: { action: "change->category#guess" } %></td>
+        <td class="estimate"><%= minutes_field_tag "new[estimate_minutes]", nil %></td>
+        <td class="category">
+          <%= select_tag "new[category]", options_for_select(category_options), include_blank: true, class: "category",
+                data: { action: "change->category#colorize input->category#accept" } %>
+        </td>
+        <td class="category"><%= select_tag "new[project_id]", options_from_collection_for_select(@projects, :id, :name), include_blank: true %></td>
         <td></td>
       </tr>
     </tbody>
   </table>
 
-  <h2>今週</h2>
-  <table>
-    <tbody>
-      <% @planned.each do |task| %>
-        <%= render "task_row", task: task,
-              moves: { today: "今日", tomorrow: "明日", inbox: "inbox", delete: "削除" } %>
-      <% end %>
-    </tbody>
-  </table>
+  <%= render "section", label: "今週", tasks: @this_week, disposable: (@disposable.left_week if @disposable.known?) %>
+
+  <% @days.each do |date, tasks| %>
+    <%= render "section", label: day_label(date, @today), tasks: tasks,
+          disposable: ((date == @today ? @disposable.left_today : @disposable.on(date)) if @disposable.known?) %>
+  <% end %>
+
+  <% @weeks.each do |week, tasks| %>
+    <%= render "section", label: week_label(week, @today), tasks: tasks, disposable: nil %>
+  <% end %>
 <% end %>

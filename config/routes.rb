@@ -54,8 +54,13 @@ Rails.application.routes.draw do
   patch "/tasks", to: "tasks#update_all"
   resources :tasks, only: %i[index create update destroy]
   resources :saved_searches, only: %i[create destroy]
-  resources :planner_items, only: %i[create update destroy]
-  resources :planner_lists, only: %i[update]
+  patch "/projects", to: "projects#update_all"
+  resources :projects, only: %i[index show update] do
+    post :terms, on: :collection
+    post :records, on: :collection
+  end
+  patch "/planner_lists", to: "planner_lists#update_all"
+  resources :planner_lists, only: %i[create show update]
 
   root "pages#today"
 end

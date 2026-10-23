@@ -1,0 +1,45 @@
+<p><%= link_to "プロジェクト", projects_path %></p>
+
+<h1><%= @project.name %></h1>
+<p>
+  <%= @project.category %>
+  / 合計 <%= minutes_to_hm(@project.minutes) %>
+  <% if @project.terms.any? %>/ フィルタ <%= @project.query %><% end %>
+</p>
+
+<%= form_with model: @project do |f| %>
+  <table class="sheet">
+    <tr>
+      <td><%= f.text_area :note, placeholder: "メモ", rows: 3 %></td>
+      <td class="actions"><%= f.submit "保存" %></td>
+    </tr>
+  </table>
+<% end %>
+
+<h2>タスク <%= minutes_to_hm(@project.tasks.sum(:estimate_minutes)) %></h2>
+<%= form_with url: tasks_path do %>
+  <%= hidden_field_tag :from, "project" %>
+  <%= hidden_field_tag "task[project_id]", @project.id %>
+  <table class="sheet">
+    <tbody>
+      <% @project.tasks.each do |task| %>
+        <tr style="background-color: <%= hex_to_pastel(@categories[task.category]) %>">
+          <td class="when"><%= when_label(task, current_date) %></td>
+          <td><%= task.content %></td>
+          <td class="estimate"><%= minutes_to_hm(task.estimate_minutes) if task.estimate_minutes %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <td></td>
+        <td><%= text_field_tag "task[content]", nil, placeholder: "inbox に追加", required: true %></td>
+        <td class="estimate"><%= minutes_field_tag "task[estimate_minutes]", nil %></td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>
+
+<h2>記録</h2>
+<%= form_with model: @project do |f| %>
+  <%= render "pages/history", days: @days, remove: true %>
+  <%= f.submit "選んだ行を外す" %>
+<% end %>

@@ -1,11 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-
-const toMinutes = (text) => {
-  const m = text.match(/^(-?\d+):(\d{2})$/)
-  return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : null
-}
-
-const toHM = (minutes) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
+import { clockToMinutes, toHM } from "minutes"
 
 const atFirstLine = (el) => !el.value.slice(0, el.selectionStart).includes("\n")
 const atLastLine = (el) => !el.value.slice(el.selectionEnd).includes("\n")
@@ -23,6 +17,14 @@ export default class extends Controller {
   disconnect() {
     clearInterval(this.timer)
     clearTimeout(this.saveTimer)
+  }
+
+  // 「1012」と打っても「10:12」に揃える
+  normalizeTime({ target }) {
+    if (!target.matches(".start, .end")) return
+
+    const minutes = clockToMinutes(target.value)
+    if (minutes !== null && minutes >= 0) target.value = toHM(minutes)
   }
 
   scheduleSave() {
@@ -94,9 +96,9 @@ export default class extends Controller {
     const cell = row.querySelector(".duration")
     if (!cell) return
 
-    const start = toMinutes(from ?? "")
+    const start = clockToMinutes(from ?? "")
     const running = !to && row.querySelector('[name$="[what]"]').value.trim() !== ""
-    const end = toMinutes((running ? this.now() : to) ?? "")
+    const end = clockToMinutes((running ? this.now() : to) ?? "")
 
     cell.classList.toggle("running", running)
     cell.textContent = start !== null && end !== null && end >= start ? toHM(end - start) : ""
@@ -133,34 +135,6 @@ export default class extends Controller {
     return template.innerHTML.replaceAll("NEW_RECORD", this.index++)
   }
 
-  colorize(event) {
-    event.target.closest("tr").style.backgroundColor = event.target.selectedOptions[0].dataset.color || ""
-  }
-
-  // 自分で選んだら推測の印を外す。input はプログラムからの代入では飛ばない
-  accept(event) {
-    event.target.classList.remove("guessed")
-  }
-
-  // 空いているカテゴリを過去の記録から埋める。外していたら選び直せばいい
-  async guessCategory(event) {
-    const select = event.target.closest("tr").querySelector("select")
-    const what = event.target.value.trim()
-    if (!select || select.value || !what) return
-
-    const response = await fetch(`/category?what=${encodeURIComponent(what)}`)
-    if (!response.ok) return
-
-    const category = (await response.text()).trim()
-    if (!category) return
-
-    select.value = category
-    if (select.value !== category) return
-
-    select.classList.add("guessed")
-    select.dispatchEvent(new Event("change", { bubbles: true }))
-  }
-
   // いま終わったことにして次の行へ移る
   finishRow() {
     const current = this.rowTargets.findLast(row => this.filled(row))
@@ -174,7 +148,7 @@ export default class extends Controller {
   }
 
   // plan から渡されたことを、いま始めたものとして空いている行に書く
-  start({ detail: { what, category } }) {
+  start({ detail: { what, category, project } }) {
     const current = this.rowTargets.findLast(row => row.querySelector(".end") && this.filled(row))
     if (current) this.closeRow(current)
 
@@ -183,6 +157,7 @@ export default class extends Controller {
     const field = row.querySelector('[name$="[what]"]')
 
     row.querySelector(".start").value = this.now() ?? ""
+    row.querySelector(".project").value = project ?? ""
     if (category) {
       const select = row.querySelector("select")
       select.value = category

@@ -90,9 +90,27 @@ module PagesHelper
   end
 
   def minutes_to_hm(minutes)
-    hours = (minutes / 60).floor
-    mins = (minutes % 60).round
-    sprintf("%d:%02d", hours, mins)
+    sign = minutes.negative? ? "-" : ""
+    hours = (minutes.abs / 60).floor
+    mins = (minutes.abs % 60).round
+    sprintf("%s%d:%02d", sign, hours, mins)
+  end
+
+  # 「1:30」でも「90」でも入れられる長さの欄
+  def minutes_field_tag(name, minutes, **options)
+    text_field_tag name, (minutes_to_hm(minutes) if minutes), placeholder: "0:30", size: 5, **options
+  end
+
+  # ↻ はルーティン、色つきは天使の取り分
+  def disposable_formula(parts)
+    angel = tag.span(minutes_to_hm(parts[:angel]), style: "color: #{@categories[DisposableTime::ANGEL]}", title: DisposableTime::ANGEL)
+    breakdown = tag.span(safe_join([ "= #{minutes_to_hm(parts[:awake])} − ↻ #{minutes_to_hm(parts[:routine])} − ", angel ]), class: "formula")
+    safe_join([ minutes_to_hm(parts[:disposable]), breakdown ], " ")
+  end
+
+  # 選んだときに行の色を変えられるよう、淡い色を持たせる
+  def category_options
+    @categories.map { |category, color| [ category, category, { data: { color: hex_to_pastel(color) } } ] }
   end
 
   def hex_to_pastel(hex)

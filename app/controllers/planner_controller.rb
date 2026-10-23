@@ -12,14 +12,8 @@ class PlannerController < ApplicationController
 
   def everyday
     @categories = Setting.instance.categories
-    @context = { date: Date.current, rain: false }
-    @lists = %w[morning leave_home evening].filter_map do |slug|
-      list = PlannerList.find_by(slug: slug)
-      next unless list
-      items = list.planner_items.select { |item| item.visible?(@context) }
-      { list: list, items: items }
-    end
-    @garbage = GarbageSource.new(date: @context[:date])
+    @lists = PlannerList.ordered
+    @candidates = PlannerList.candidates(current_date)
   end
 
   def today

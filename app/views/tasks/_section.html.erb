@@ -1,0 +1,9 @@
+<h2>
+  <%= label %> <%= minutes_to_hm(tasks.sum { _1.estimate_minutes.to_i }) %>
+  <% if disposable %>/ 可処分 <%= minutes_to_hm(disposable) %><% end %>
+</h2>
+<table class="sheet">
+  <tbody>
+    <%= render partial: "task_row", collection: tasks, as: :task %>
+  </tbody>
+</table>

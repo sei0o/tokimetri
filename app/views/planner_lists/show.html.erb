@@ -1,0 +1,40 @@
+<p><%= link_to "ルーティン", planner_everyday_path %></p>
+
+<h1><%= @list.title %></h1>
+<p>
+  <%= [ @list.period, @list.category, @list.wdays_label.presence ].compact.join(" / ") %>
+  <% if @list.wdays.present? %>/ いつも <%= minutes_to_hm(@list.typical_minutes(current_date)) %><% end %>
+</p>
+
+<%= form_with model: @list do |f| %>
+  <button>保存</button>
+
+  <table class="sheet">
+    <thead>
+      <tr>
+        <th>やること</th>
+        <th>条件</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= f.fields_for :planner_items, [ *@list.planner_items, *Array.new(3) { PlannerItem.new } ] do |item| %>
+        <tr>
+          <td>
+            <% if item.object.note? %>
+              <%= item.text_area :content, rows: 3 %>
+            <% else %>
+              <%= item.text_field :content, placeholder: ("追加" if item.object.new_record?) %>
+            <% end %>
+          </td>
+          <td class="category"><%= item.select :condition, PlannerItem::CONDITIONS, include_blank: true %></td>
+        </tr>
+      <% end %>
+      <tr>
+        <td colspan="2"><%= f.text_area :note, placeholder: "メモ", rows: 3 %></td>
+      </tr>
+    </tbody>
+  </table>
+<% end %>
+
+<h2>記録</h2>
+<%= render "pages/history", days: @days %>
