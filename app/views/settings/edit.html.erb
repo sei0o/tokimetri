@@ -1,3 +1,4 @@
+<% content_for :title, "Settings" %>
 <%= form_with model: @setting, url: settings_path, method: :patch do |f| %>
 <dl>
   <dt><%= f.label :prompt, "プロンプト" %></dt>
@@ -28,6 +29,8 @@
   <br>
   <%= f.submit "保存" %>
 <% end %>
+
+<%= button_to "ログアウト", session_path, method: :delete %>
 
 
 <script>

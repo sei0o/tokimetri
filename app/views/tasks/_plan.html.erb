@@ -1,5 +1,10 @@
-<section id="plan" data-controller="plan category" data-plan-date-value="<%= @date.iso8601 %>">
-  <h2>今日 <span data-plan-target="total"><%= minutes_to_hm(@tasks.sum(:estimate_minutes)) %></span></h2>
+<% assigned = @tasks.sum(:estimate_minutes) %>
+<% left = @disposable.left_today.round if @disposable&.known? %>
+<section id="plan" data-controller="plan category" data-plan-date-value="<%= @date.iso8601 %>" data-plan-left-value="<%= left %>">
+  <p>
+    今日のタスク 割当 <span data-plan-target="total"><%= minutes_to_hm(assigned) %></span>
+    <% if left %>/ 未割当 <span data-plan-target="free"><%= minutes_to_hm(left - assigned) %></span><% end %>
+  </p>
   <table class="sheet">
     <%= render "tasks/plan_columns" %>
     <tbody data-plan-target="today">
@@ -26,7 +31,7 @@
   <% end %>
 
   <% if @routines.present? %>
-    <h2>ルーティン</h2>
+    <p>ルーティン</p>
     <table class="sheet">
       <%= render "tasks/plan_columns" %>
       <tbody>

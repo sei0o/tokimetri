@@ -9,8 +9,8 @@ const request = (url, method, body) => fetch(url, {
 
 // ページを読み直すと log の書きかけが消えるので、ここは全部 fetch で済ませる
 export default class extends Controller {
-  static targets = ["today", "total"]
-  static values = { date: String }
+  static targets = ["today", "total", "free"]
+  static values = { date: String, left: Number }
 
   async add(event) {
     if (event.isComposing || event.keyCode === 229) return
@@ -71,6 +71,7 @@ export default class extends Controller {
     const minutes = [...this.todayTarget.rows]
       .reduce((sum, row) => sum + (durationToMinutes(row.querySelector("[name='task[estimate_minutes]']").value) ?? 0), 0)
     this.totalTarget.textContent = toHM(minutes)
+    if (this.hasFreeTarget) this.freeTarget.textContent = toHM(this.leftValue - minutes)
   }
 
   // log に行を始めてもらう。タスクなら plan からは消える

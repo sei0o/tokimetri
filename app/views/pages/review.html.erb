@@ -1,4 +1,13 @@
+<% content_for :title, "Review #{@startdate.strftime("%-m/%-d")}〜" %>
 <style>
+  #week-nav {
+    text-align: center;
+  }
+
+  #week-nav h2 {
+    display: inline;
+  }
+
   .week-section {
     margin-bottom: 3rem;
   }
@@ -117,15 +126,11 @@
   <% end %>
 <% end %>
 
-<div>
-  <%= form_with url: review_path, method: :get, style: "display: flex; align-items: center; gap: 1rem;" do |f| %>
-    <%= f.label :date, "週の開始日:" %>
-    <%= f.date_field :date, value: @startdate, style: "padding: 0.5rem; font-size: 1rem;" %>
-    <%= f.submit "表示", style: "padding: 0.5rem 1rem; cursor: pointer;" %>
-  <% end %>
-</div>
-
-<h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
+<header id="week-nav">
+  <a href="<%= review_date_path(@startdate - 7.days) %>">◀</a>
+  <h2><%= @startdate.strftime("%Y/%m/%d") %> ~ <%= @enddate.strftime("%Y/%m/%d") %></h2>
+  <a href="<%= review_date_path(@startdate + 7.days) %>">▶</a>
+</header>
 
 <% if @analyzing %>
   <div id="analyzing-banner" style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 0.75rem 1rem; margin-bottom: 1rem;">

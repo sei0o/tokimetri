@@ -234,11 +234,7 @@ class PagesController < ApplicationController
   def review
     # 先週の記録を全部出す（月曜始まり）
 
-    if params[:date].present?
-      @startdate = Date.parse(params[:date])
-    else
-      @startdate = Date.today.beginning_of_week
-    end
+    @startdate = (params[:date].present? ? Date.parse(params[:date]) : current_date).beginning_of_week
     @enddate = @startdate + 6.days
 
     @pages_thisweek = Page.where(date: @startdate..@enddate).order(:date)

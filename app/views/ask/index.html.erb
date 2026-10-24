@@ -1,3 +1,4 @@
+<% content_for :title, "Ask" %>
 <%= form_with url: ask_path, method: :post, data: { turbo: false } do |f| %>
   <%= f.text_area :question, value: @question, rows: 3, style: "width: 100%; font: inherit; padding: 0.5rem; box-sizing: border-box;", placeholder: "例: 絵を描くのに大体どれくらいかかってる？" %>
   <%= f.submit "聞く" %>

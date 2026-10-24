@@ -11,4 +11,7 @@ export const durationToMinutes = (text) => {
   return /^\d+$/.test(text.trim()) ? parseInt(text) : null
 }
 
-export const toHM = (minutes) => `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, "0")}`
+export const toHM = (minutes) => {
+  const abs = Math.abs(Math.round(minutes))
+  return `${minutes < 0 ? "-" : ""}${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, "0")}`
+}
