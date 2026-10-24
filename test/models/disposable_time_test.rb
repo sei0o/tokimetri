@@ -29,6 +29,7 @@ class DisposableTimeTest < ActiveSupport::TestCase
     time = DisposableTime.new(Date.new(2026, 10, 21), Time.zone.parse("2026-10-21 16:00"))
 
     assert_equal 14 * 60 * 0.5, time.left_today
+    assert_equal({ disposable: 14 * 60 * 0.5, awake: 16 * 60 * 0.5, routine: 0, angel: 120 * 0.5 }, time.left_parts)
     assert_equal 14 * 60 * 0.5 + (14 * 60 - 60) * 4 - 180, time.left_week
   end
 

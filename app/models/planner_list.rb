@@ -60,6 +60,8 @@ class PlannerList < ApplicationRecord
 
   private_class_method :candidate
 
+  def finished_on?(page) = records_on(page).any?(&:end_time)
+
   def records_on(page)
     page ? page.records.select { matches?(_1) } : []
   end

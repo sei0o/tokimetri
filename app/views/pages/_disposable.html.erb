@@ -1,7 +1,7 @@
 <% if @date == current_date %>
   <p>
-    残り可処分 <%= minutes_to_hm(@disposable.left_today) %>
-    / <%= disposable_formula(@disposable.parts(@date)) %>
+    残り可処分 <%= disposable_formula(@disposable.left_parts) %>
+    / 今日 <%= minutes_to_hm(@disposable.on(@date)) %>
   </p>
 <% elsif @date > current_date %>
   <p>可処分 予定 <%= disposable_formula(@disposable.parts(@date)) %></p>

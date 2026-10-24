@@ -50,9 +50,7 @@
               </details>
             </td>
             <td class="duration">
-              <% if routine[:done].any?(&:end_time) %>
-                済 <%= minutes_to_hm(routine[:done].sum { _1.duration_minutes.to_i }) %>
-              <% elsif routine[:done].any? %>
+              <% if routine[:done].any? %>
                 進行中
               <% else %>
                 <%= minutes_to_hm(routine[:typical]) %>

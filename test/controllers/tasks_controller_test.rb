@@ -72,6 +72,19 @@ class TasksControllerTest < ActionDispatch::IntegrationTest
     assert_equal "研究", task.category
   end
 
+  test "終わったルーティンは今日のページから消える" do
+    PlannerList.create!(title: "朝の準備", wdays: "0123456")
+    PlannerList.create!(title: "夜の支度", wdays: "0123456")
+    start = Time.zone.parse("#{Date.current} 08:00")
+    Page.create!(date: Date.current).records.create!(what: "朝の準備", start_time: start, end_time: start + 30.minutes)
+
+    travel_to Time.zone.parse("#{Date.current} 12:00") do
+      get log_path(Date.current.strftime("%Y%m%d"))
+    end
+    assert_select "#plan summary", text: "夜の支度"
+    assert_select "#plan summary", text: "朝の準備", count: 0
+  end
+
   test "plan で欄を書き換えられる" do
     task = Task.create!(content: "掃除", date: Date.current)
 

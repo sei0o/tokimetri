@@ -33,13 +33,21 @@ class DisposableTime
     { disposable: awake - routine - angel, awake:, routine:, angel: }
   end
 
-  def left_today = (awake - angel) * (1 - @fraction) - minutes(undone)
+  def left_today = left_parts[:disposable]
+
+  # 残り可処分の内訳。これから起きている時間から、まだ終わっていないルーティンと天使の取り分の残りを引く
+  def left_parts
+    awake_left = awake * (1 - @fraction)
+    angel_left = angel * (1 - @fraction)
+    routine = minutes(unfinished)
+    { disposable: awake_left - routine - angel_left, awake: awake_left, routine:, angel: angel_left }
+  end
 
   def left_week = left_today + (@today + 1.day..@today.end_of_week).sum { on(_1) }
 
   private
 
-  def undone = routines(@today).select { _1.records_on(@page).empty? }
+  def unfinished = routines(@today).reject { _1.finished_on?(@page) }
 
   def routines(date)
     (@routines ||= {})[date.wday] ||= PlannerList.on(date).to_a

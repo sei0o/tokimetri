@@ -150,7 +150,7 @@ class PagesController < ApplicationController
     @left_in_week = Task.left_in_week(@date)
     @pace = Page.weekly_pace(@date, current_time)
     context = { date: @date, rain: WeatherService.rain? }
-    @routines = PlannerList.on(@date).map do |list|
+    @routines = PlannerList.on(@date).reject { _1.finished_on?(@page) }.map do |list|
       { list: list, items: list.planner_items.select { |item| item.task? && item.visible?(context) },
         typical: list.typical_minutes(@date), done: list.records_on(@page) }
     end
